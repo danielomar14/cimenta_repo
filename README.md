@@ -32,9 +32,16 @@ cimenta_repo/
 ├── src/          # Código fuente de los módulos
 ├── test/         # Pruebas
 ├── docs/         # Documentación y contexto del proyecto
-├── BITACORA.md   # Bitácora de avance (registro de todo lo que hacemos)
+├── BITACORA.tex  # Bitácora de avance (fuente LaTeX)
+├── BITACORA.pdf  # Bitácora renderizada
 ├── requirements.txt
 └── README.md
+```
+
+La bitácora se escribe en LaTeX y se renderiza a PDF con [`tectonic`](https://tectonic-typesetting.github.io/):
+
+```bash
+tectonic BITACORA.tex   # genera BITACORA.pdf
 ```
 
 ## Entorno
@@ -58,7 +65,7 @@ Se desarrolla en `feature/dev`, se prueba en `dev` y, si todo va bien, se promue
 ## Estado
 
 Proyecto en fase inicial. El desarrollo avanza **etapa por etapa** según el catálogo de
-etapas, registrando cada paso en [`BITACORA.md`](BITACORA.md).
+etapas, registrando cada paso en la bitácora ([`BITACORA.tex`](BITACORA.tex) → [`BITACORA.pdf`](BITACORA.pdf)).
 
 ---
 *Ciudad de México · 2026 · Documento de trabajo.*

@@ -33,6 +33,17 @@ data/*
 secrets.*
 *.key
 
+# ---- LaTeX (auxiliares; el PDF renderizado sí se versiona) ----
+*.aux
+*.log
+*.out
+*.toc
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+*.bbl
+*.blg
+
 # ---- Herramientas y caché ----
 .pytest_cache/
 .mypy_cache/

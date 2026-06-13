@@ -1,0 +1,124 @@
+% =====================================================================
+%  CIMENTA — Bitácora del proyecto
+%  Fuente LaTeX. Compilar con:  tectonic BITACORA.tex
+%  Para agregar una entrada nueva: copia el bloque \entrada{...} de
+%  ejemplo al inicio de la sección de entradas (la más reciente arriba).
+% =====================================================================
+\documentclass[11pt]{article}
+
+\usepackage{fontspec}            % XeLaTeX: UTF-8 y acentos nativos
+\usepackage[spanish,es-noindentfirst]{babel}
+\usepackage[a4paper,margin=2.4cm]{geometry}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{fancyhdr}
+\usepackage{parskip}
+\usepackage{amssymb}             % \square para checkboxes
+\usepackage[hidelinks]{hyperref}
+
+% ---- Paleta de marca CIMENTA ----
+\definecolor{azul}{HTML}{16324F}
+\definecolor{acento}{HTML}{2D7DD2}
+\definecolor{grafito}{HTML}{43484D}
+\definecolor{niebla}{HTML}{AEB6BD}
+
+\color{grafito}
+
+% ---- Títulos ----
+\titleformat{\section}{\Large\bfseries\color{azul}}{}{0pt}{}[\vspace{2pt}\color{niebla}\titlerule]
+\titleformat{\subsection}{\large\bfseries\color{acento}}{}{0pt}{}
+\titlespacing{\section}{0pt}{16pt}{6pt}
+\titlespacing{\subsection}{0pt}{10pt}{2pt}
+
+% ---- Encabezado / pie ----
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.4pt}
+\lhead{\small\color{azul}\textbf{CIMENTA}\,\textcolor{niebla}{·}\,Bitácora}
+\rhead{\small\color{niebla}\thepage}
+\renewcommand{\footrulewidth}{0pt}
+
+% ---- Atajos ----
+\newcommand{\codigo}[1]{\texttt{#1}}
+\newcommand{\pend}{\item[\textcolor{acento}{$\square$}]}
+\setlist[itemize]{leftmargin=1.4em,itemsep=2pt,topsep=2pt}
+
+% =====================================================================
+\begin{document}
+
+% ---------- Portada / cabecera ----------
+\begin{center}
+  {\color{azul}\Huge\bfseries CIMENTA}\\[2pt]
+  {\color{acento}\large Bitácora del proyecto}\\[6pt]
+  {\color{niebla}\small Inteligencia inmobiliaria cuantitativa · Ciudad de México · 2026}
+\end{center}
+\vspace{6pt}
+\hrule height 1pt
+\vspace{10pt}
+
+\noindent Registro cronológico de todo lo que hacemos en el proyecto.
+La entrada más reciente va arriba.
+
+\textbf{Convención de cada entrada:} fecha y responsable · qué se hizo ·
+decisiones / notas · pendientes / siguiente paso.
+
+% =====================================================================
+%  ENTRADAS (la más reciente arriba)
+% =====================================================================
+
+\section*{2026-06-12 — Arranque del proyecto (Etapa 0: setup)}
+\addcontentsline{toc}{section}{2026-06-12 — Arranque del proyecto}
+
+\subsection*{Qué se hizo}
+\begin{itemize}
+  \item Estructura base del repositorio: \codigo{app/}, \codigo{data/},
+        \codigo{notebooks/}, \codigo{test/}, \codigo{src/}, \codigo{docs/},
+        más \codigo{README.md}, \codigo{requirements.txt}, \codigo{.gitignore}
+        y esta bitácora.
+  \item Carpetas vacías versionadas con \codigo{.gitkeep}.
+  \item Entorno de Anaconda \textbf{\codigo{cimenta\_env}} con \textbf{Python 3.12}
+        (vacío, sin dependencias todavía).
+  \item Repositorio Git con tres ramas: \codigo{master}, \codigo{dev},
+        \codigo{feature/dev}.
+  \item Remoto configurado a
+        \codigo{https://github.com/danielomar14/cimenta\_repo.git} y las tres
+        ramas subidas.
+\end{itemize}
+
+\subsection*{Decisiones / notas}
+\begin{itemize}
+  \item Flujo de trabajo: desarrollo en \codigo{feature/dev}
+        $\rightarrow$ pruebas en \codigo{dev}
+        $\rightarrow$ estable en \codigo{master}.
+  \item El entorno se mantiene vacío a propósito; las dependencias se agregarán
+        etapa por etapa.
+  \item Datos (\codigo{data/}) excluidos del control de versiones vía
+        \codigo{.gitignore}.
+  \item La bitácora se lleva en LaTeX (\codigo{BITACORA.tex}) y se renderiza a
+        PDF (\codigo{BITACORA.pdf}) con \codigo{tectonic}.
+\end{itemize}
+
+\subsection*{Bloqueo detectado — Catálogo de Etapas ilegible}
+\begin{itemize}
+  \item El archivo \codigo{docs/context/CIMENTA-Catalogo-de-Etapas.pdf}
+        (236 págs.) está \textbf{corrupto}: todos los bytes $\geq$ \codigo{0x80}
+        de sus streams comprimidos fueron sustituidos por el carácter de
+        reemplazo Unicode U+FFFD (\codigo{ef bf bd}) — 823{,}069 ocurrencias.
+        Es resultado de un round-trip UTF-8 que destruyó la data binaria.
+        \textbf{No es recuperable}: ni texto ni render.
+  \item Los demás PDFs de \codigo{docs/context/} están sanos: Plan-Maestro-v2
+        (97p), Plan-Maestro (43p), Bitácora-del-Jurado (120p), Propuesta-Inicial
+        (12p), Riesgos-y-Debilidades (17p).
+  \item \textbf{Acción requerida:} reexportar / volver a subir una copia limpia
+        del Catálogo de Etapas para poder avanzar etapa por etapa.
+\end{itemize}
+
+\subsection*{Pendientes / siguiente paso}
+\begin{itemize}
+  \pend Obtener copia limpia de \codigo{CIMENTA-Catalogo-de-Etapas.pdf}.
+  \pend Leer el catálogo y definir la Etapa 1.
+\end{itemize}
+
+\end{document}
