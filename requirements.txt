@@ -5,3 +5,7 @@
 #
 # Para regenerar este archivo desde el entorno activo:
 #   pip freeze > requirements.txt
+
+# ---- M1 Ingesta ----
+requests==2.34.2
+PyYAML==6.0.3

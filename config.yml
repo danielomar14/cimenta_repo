@@ -24,3 +24,64 @@ portales:
   - { nombre: "EasyBroker",             sitio: "https://www.easybroker.com" }
   - { nombre: "iCasas",                 sitio: "https://www.icasas.mx" }
   - { nombre: "Casas y Terrenos",       sitio: "https://www.casasyterrenos.com" }
+
+
+# =====================================================================
+#  Configuración de ingesta (M1) por portal
+# =====================================================================
+ingesta:
+  # ---- Casas y Terrenos (PoC, Nivel A) -------------------------------
+  #  Next.js: los listados vienen en <script id="__NEXT_DATA__"> →
+  #  props.pageProps.initialState.propertyData.properties
+  #  URL: /{estado}/{municipio}/{tipo}/{operacion}?page=N  (240/pág, 1-indexed)
+  #  Fecha disponible en el listado: lastUpdate (última actualización).
+  casasyterrenos:
+    base_url: "https://www.casasyterrenos.com"
+    hits_per_page: 240
+    meses_atras: 3            # filtro por lastUpdate (proxy de "publicación reciente")
+    delay_seg: [1.5, 3.5]     # pausa aleatoria entre requests (cortesía)
+    zonas:                    # {estado_slug: [municipio_slug, ...]}
+      ciudad-de-mexico:       # CDMX — 16 alcaldías
+        - alvaro-obregon
+        - azcapotzalco
+        - benito-juarez
+        - coyoacan
+        - cuajimalpa-de-morelos
+        - cuauhtemoc
+        - gustavo-a-madero
+        - iztacalco
+        - iztapalapa
+        - la-magdalena-contreras
+        - miguel-hidalgo
+        - milpa-alta
+        - tlahuac
+        - tlalpan
+        - venustiano-carranza
+        - xochimilco
+      estado-de-mexico:       # ZMVM — principales municipios conurbados
+        - naucalpan-de-juarez
+        - tlalnepantla-de-baz
+        - ecatepec-de-morelos
+        - nezahualcoyotl
+        - huixquilucan
+        - atizapan-de-zaragoza
+        - cuautitlan-izcalli
+        - coacalco-de-berriozabal
+        - tultitlan
+        - chimalhuacan
+        - tecamac
+        - la-paz
+        - chalco
+        - ixtapaluca
+        - valle-de-chalco-solidaridad
+    tipos:
+      - casas
+      - departamentos
+      - terrenos
+      - oficinas
+      - locales-comerciales
+      - bodegas
+      - edificios
+    operaciones:
+      - venta
+      - renta

@@ -68,6 +68,73 @@ decisiones / notas · pendientes / siguiente paso.
 %  ENTRADAS (la más reciente arriba)
 % =====================================================================
 
+\section*{2026-06-13 — Recon de los 10 portales + PoC scraping (M1)}
+\addcontentsline{toc}{section}{2026-06-13 — Recon + PoC scraping}
+
+\subsection*{Recon técnico de los 10 (clasificación Nivel A/B)}
+Se probó cada portal (status, anti-bot, forma de entrega de datos). Resultado:
+
+\begin{center}\footnotesize
+\begin{tabular}{@{}rlll@{}}
+\toprule
+\# & Portal & Anti-bot / entrega & Nivel \\
+\midrule
+1  & Inmuebles24      & Cloudflare challenge (403)        & B \\
+2  & Propiedades.com  & Cloudflare challenge              & B \\
+3  & Vivanuncios      & Cloudflare ``Just a moment'' (403)& B \\
+4  & Lamudi           & accesible (Jetty), HTML           & A \\
+5  & Mercado Libre    & accesible; protección profunda/API& A/B \\
+6  & Pincali          & accesible (Rails), JSON-LD        & A \\
+7  & Trovit           & 401 (agregador, requiere headers) & — \\
+8  & EasyBroker       & accesible; API oficial documentada& A+ \\
+9  & iCasas           & accesible (Apache), HTML          & A \\
+10 & Casas y Terrenos & accesible; \codigo{\_\_NEXT\_DATA\_\_} & A \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent Los 3 más grandes están tras Cloudflare → Nivel B (su propio catálogo
+dice no evadir sin acuerdo). Los 7 restantes son accesibles con HTTP normal.
+
+\subsection*{PoC — Casas y Terrenos (Nivel A)}
+\begin{itemize}
+  \item \codigo{robots.txt} permite los listados para \codigo{User-Agent: *}
+        (solo bloquea \codigo{/api/}, \codigo{/beta/} y bots SEO). Sin anti-bot.
+  \item Next.js: los listados vienen en \codigo{\_\_NEXT\_DATA\_\_} →
+        \codigo{props.pageProps.initialState.propertyData.properties}.
+        URL \codigo{/\{estado\}/\{municipio\}/\{tipo\}/\{operacion\}?page=N}
+        (240/pág, 1-indexed); total en \codigo{estimatedTotalHits}.
+  \item Se construyó \codigo{src/ingesta/casasyterrenos.py} (config-driven desde
+        \codigo{config.yml}): itera alcaldías CDMX + municipios ZMVM × tipos ×
+        operaciones, pagina, filtra por \codigo{lastUpdate} (3 meses), deduplica
+        por \codigo{id}, guarda JSONL (raw) + CSV (plano). Reanudable.
+  \item Dependencias de la etapa: \codigo{requests}, \codigo{PyYAML}
+        (instaladas en \codigo{cimenta\_env}).
+  \item \textbf{Prueba (Benito Juárez, 14 combos, $\sim$45 s): 855 propiedades
+        únicas $\leq$3 meses}, dedup perfecto (855 CSV = 855 JSONL = 855 ids).
+\end{itemize}
+
+\subsection*{Caveats de calidad de datos (anotados)}
+\begin{itemize}
+  \item La búsqueda por alcaldía es \textbf{geo-radial / con match de texto}:
+        un seed devuelve propiedades de zonas vecinas. Se mitiga con dedup por
+        \codigo{id} y la unión de todas las alcaldías.
+  \item El campo \codigo{municipality} lo captura el broker y \textbf{a veces es
+        incorrecto} (ej. un anuncio con coords en CDMX etiquetado ``Morelia'').
+        La señal confiable de ubicación es \codigo{\_geo} (lat/lng).
+  \item \codigo{lastUpdate} es \textbf{última actualización}, no fecha de
+        publicación pura (el listado no la expone). Se usa como proxy de
+        ``reciente''.
+\end{itemize}
+
+\subsection*{Pendientes / siguiente paso}
+\begin{itemize}
+  \pend Lanzar la corrida completa CDMX + ZMVM de Casas y Terrenos (434 combos).
+  \pend Replicar el patrón a los otros portales Nivel A (Lamudi, Pincali, iCasas,
+        EasyBroker, Casas y Terrenos ✓).
+  \pend Decidir qué hacer con los 3 de Cloudflare (CloakBrowser vs. acuerdo vs. excluir).
+\end{itemize}
+
 \section*{2026-06-12 — Etapa 1: portales objetivo (M1 Ingesta)}
 \addcontentsline{toc}{section}{2026-06-12 — Etapa 1: portales objetivo}
 
