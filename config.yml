@@ -86,6 +86,23 @@ ingesta:
       - venta
       - renta
 
+  # ---- Lamudi (Nivel A) ----------------------------------------------
+  #  Server-rendered: los listados vienen en JSON-LD (@graph → mainEntity →
+  #  itemListElement → item, cada uno schema.org con geo/precio/m²/recámaras).
+  #  URL: /{estado}/{operacion}/?page=N   (30/pág).  robots permite listados.
+  #  OJO: Lamudi NO expone fecha de publicación → se toman anuncios ACTIVOS
+  #  (sin filtro de 3 meses).
+  lamudi:
+    base_url: "https://www.lamudi.com.mx"
+    estados:
+      - distrito-federal       # CDMX
+      - estado-de-mexico       # ZMVM (best-effort; puede redirigir)
+    operaciones:               # slug_url: etiqueta
+      for-sale: venta
+      for-rent: renta
+    max_pages: 100             # 30/pág → hasta 3000 por estado/operación
+    delay_seg: [1.5, 3.5]
+
 
 # =====================================================================
 #  Google Drive — subida de fotos y respaldos

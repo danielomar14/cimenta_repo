@@ -68,6 +68,46 @@ decisiones / notas · pendientes / siguiente paso.
 %  ENTRADAS (la más reciente arriba)
 % =====================================================================
 
+\section*{2026-06-13 — Corrida completa CyT (tqdm) + scraper Lamudi}
+\addcontentsline{toc}{section}{2026-06-13 — Corrida completa + Lamudi}
+
+\subsection*{Casas y Terrenos — listo para corrida completa}
+\begin{itemize}
+  \item Se añadió barra de progreso \codigo{tqdm} al scraper (combo actual, \%, ETA,
+        acumulado). Dependencia \codigo{tqdm} agregada.
+  \item Corrida completa = 434 combos (16 alcaldías CDMX + 15 municipios ZMVM
+        $\times$ 7 tipos $\times$ 2 operaciones). Reanudable; continúa desde el
+        checkpoint (Benito Juárez ya estaba hecho).
+  \item Comando: \codigo{python -m src.ingesta.casasyterrenos}.
+\end{itemize}
+
+\subsection*{Lamudi — segundo portal Nivel A (scraper nuevo)}
+\begin{itemize}
+  \item \codigo{robots.txt} permite los listados (bloquea forms/prefetch y URLs con
+        \codigo{search-filter}/\codigo{action}/\codigo{version}).
+  \item Server-rendered con \textbf{JSON-LD}: los anuncios están en
+        \codigo{@graph[0].mainEntity[0].itemListElement[*].item} — cada uno
+        schema.org con \codigo{name}, \codigo{@type}, \codigo{numberOfBedrooms},
+        \codigo{numberOfBathroomsTotal}, \codigo{floorSize} (m²), \codigo{geo}
+        (lat/lng), \codigo{address}, \codigo{offers} (precio) y \codigo{url}.
+  \item \codigo{src/ingesta/lamudi.py}: URL \codigo{/\{estado\}/\{operacion\}/?page=N}
+        (30/pág, \codigo{for-sale}/\codigo{for-rent}); pagina hasta vaciar o
+        \codigo{max\_pages}; dedup por id de URL; JSONL + CSV; reanudable.
+  \item Se corrigió \textbf{mojibake} (Lamudi no declara charset → se fuerza UTF-8).
+  \item \textbf{Caveat:} Lamudi \textbf{no expone fecha de publicación} en el
+        listado → se toman anuncios \textbf{activos} (sin filtro de 3 meses).
+        Para el mapa es justo lo deseado (inventario vigente).
+  \item Probado: distrito-federal/for-sale → 30 listings/pág con todos los campos
+        y acentos correctos.
+\end{itemize}
+
+\subsection*{Pendientes / siguiente paso}
+\begin{itemize}
+  \pend Correr la completa de Lamudi (\codigo{python -m src.ingesta.lamudi}).
+  \pend Unificar CSVs de portales en un esquema común para el visor.
+  \pend Siguientes Nivel A: Pincali, iCasas, EasyBroker (API).
+\end{itemize}
+
 \section*{2026-06-13 — Visor Streamlit + mapa OpenStreetMap}
 \addcontentsline{toc}{section}{2026-06-13 — Visor Streamlit + mapa}
 
