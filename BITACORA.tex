@@ -68,6 +68,43 @@ decisiones / notas · pendientes / siguiente paso.
 %  ENTRADAS (la más reciente arriba)
 % =====================================================================
 
+\section*{2026-06-13 — Deduplicación (Etapa 10): un inmueble, el más barato}
+\addcontentsline{toc}{section}{2026-06-13 — Deduplicación}
+
+\subsection*{Qué se hizo}
+\begin{itemize}
+  \item \codigo{src/ingesta/dedup.py}: une todos los CSVs, detecta el mismo
+        inmueble publicado repetido (varios brokers / varios portales) y colapsa
+        cada grupo a UN registro = \textbf{el más barato}.
+  \item \textbf{Firma}: (municipio, colonia, tipo, operación, m² en bucket,
+        recámaras, baños), normalizando texto (sin acentos/mayúsculas) para casar
+        entre portales.
+  \item \textbf{Control de precio}: dentro de cada firma, dos anuncios solo son el
+        mismo inmueble si su precio está dentro de $\pm$\codigo{tol} (def 30\%).
+        Evita fusionar inmuebles distintos de la misma colonia/m² (p.ej. un
+        \$2.3M con un \$26M). Parámetros: \codigo{--tol}, \codigo{--m2-bucket},
+        \codigo{--scope global|intra}.
+  \item Salida \codigo{data/processed/\_unificado\_dedup.csv} con
+        \codigo{n\_anuncios}, \codigo{portales}, \codigo{precio\_min/max},
+        \codigo{ahorro}.
+\end{itemize}
+
+\subsection*{Resultado (snapshot durante la corrida)}
+\begin{itemize}
+  \item $\sim$16.6k anuncios crudos $\to$ $\sim$12.9k inmuebles únicos
+        (\textbf{22\% duplicados} eliminados).
+  \item $\sim$460 duplicados \textbf{multi-portal} (mismo inmueble en varios sitios).
+  \item Se valida con spot-check: los matches multi-portal tienen spreads de precio
+        creíbles ($\pm$30\%); se corrigió un over-merge inicial (firma sin precio).
+\end{itemize}
+
+\subsection*{Pendiente / siguiente}
+\begin{itemize}
+  \pend Refinar a la dedup ``de verdad'' del catálogo: geometría (coords finas) +
+        texto + huella visual de fotos.
+  \pend (Opcional) que el visor muestre el set deduplicado.
+\end{itemize}
+
 \section*{2026-06-13 — Los 5 portales corriendo + visor multi-portal}
 \addcontentsline{toc}{section}{2026-06-13 — 5 portales + visor multi-portal}
 
