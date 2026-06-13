@@ -1,0 +1,26 @@
+# =====================================================================
+#  CIMENTA — Configuración del proyecto
+# =====================================================================
+#  Etapa 1 · Módulo M1 (Ingesta)
+#  Top 10 portales inmobiliarios objetivo para CDMX y la Zona
+#  Metropolitana del Valle de México (ZMVM).
+#
+#  Ranking por tráfico, cruzando Similarweb (top 5, may-2026) y
+#  Semrush (abr-2026, visitas/mes). Se excluyeron sitios no relevantes
+#  para CDMX (craigslist, zillow, idealista, foros).
+#  Última actualización: 2026-06-12.
+#
+#  Cada portal es un objeto: { nombre, sitio }.
+# =====================================================================
+
+portales:
+  - { nombre: "Inmuebles24",            sitio: "https://www.inmuebles24.com" }
+  - { nombre: "Propiedades.com",        sitio: "https://propiedades.com" }
+  - { nombre: "Vivanuncios",            sitio: "https://www.vivanuncios.com.mx" }
+  - { nombre: "Lamudi",                 sitio: "https://www.lamudi.com.mx" }
+  - { nombre: "Mercado Libre Inmuebles", sitio: "https://inmuebles.mercadolibre.com.mx" }
+  - { nombre: "Pincali",                sitio: "https://www.pincali.com" }
+  - { nombre: "Trovit Casas",           sitio: "https://casas.trovit.com.mx" }
+  - { nombre: "EasyBroker",             sitio: "https://www.easybroker.com" }
+  - { nombre: "iCasas",                 sitio: "https://www.icasas.mx" }
+  - { nombre: "Casas y Terrenos",       sitio: "https://www.casasyterrenos.com" }

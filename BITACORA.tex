@@ -68,6 +68,54 @@ decisiones / notas · pendientes / siguiente paso.
 %  ENTRADAS (la más reciente arriba)
 % =====================================================================
 
+\section*{2026-06-12 — Etapa 1: portales objetivo (M1 Ingesta)}
+\addcontentsline{toc}{section}{2026-06-12 — Etapa 1: portales objetivo}
+
+\subsection*{Qué se hizo}
+\begin{itemize}
+  \item Investigación de los principales portales para comprar inmuebles en CDMX
+        y la ZMVM, cruzando rankings de tráfico de \textbf{Similarweb} (top 5,
+        may-2026) y \textbf{Semrush} (abr-2026, visitas/mes).
+  \item Se excluyeron sitios con poco inventario CDMX o no-portal
+        (craigslist, zillow, idealista, foros).
+  \item Se creó \codigo{config.yml} con la lista \codigo{portales} (objetos
+        \codigo{\{nombre, sitio\}}).
+\end{itemize}
+
+\subsection*{Top 10 portales seleccionados}
+\begin{center}\footnotesize
+\begin{tabular}{@{}rll@{}}
+\toprule
+\# & Portal & Sitio \\
+\midrule
+1  & Inmuebles24            & \codigo{https://www.inmuebles24.com} \\
+2  & Propiedades.com        & \codigo{https://propiedades.com} \\
+3  & Vivanuncios            & \codigo{https://www.vivanuncios.com.mx} \\
+4  & Lamudi                 & \codigo{https://www.lamudi.com.mx} \\
+5  & Mercado Libre Inmuebles& \codigo{https://inmuebles.mercadolibre.com.mx} \\
+6  & Pincali                & \codigo{https://www.pincali.com} \\
+7  & Trovit Casas           & \codigo{https://casas.trovit.com.mx} \\
+8  & EasyBroker             & \codigo{https://www.easybroker.com} \\
+9  & iCasas                 & \codigo{https://www.icasas.mx} \\
+10 & Casas y Terrenos       & \codigo{https://www.casasyterrenos.com} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection*{Decisiones / notas}
+\begin{itemize}
+  \item Orden por tráfico nacional; todos tienen inventario en CDMX/ZMVM.
+  \item Trovit es agregador (útil para probar deduplicación en M1); EasyBroker
+        es backend tipo MLS con API. Alternos a futuro: Metroscubicos, Century21,
+        RE/MAX MX.
+\end{itemize}
+
+\subsection*{Pendientes / siguiente paso}
+\begin{itemize}
+  \pend Definir la estructura de M1 (Ingesta): cómo recolectar de cada portal.
+  \pend Revisar términos de uso / \codigo{robots.txt} de cada sitio antes de scrapear.
+\end{itemize}
+
 \section*{2026-06-12 — Arranque del proyecto (Etapa 0: setup)}
 \addcontentsline{toc}{section}{2026-06-12 — Arranque del proyecto}
 
