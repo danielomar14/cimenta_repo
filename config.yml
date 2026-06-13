@@ -85,3 +85,16 @@ ingesta:
     operaciones:
       - venta
       - renta
+
+
+# =====================================================================
+#  Google Drive — subida de fotos y respaldos
+# =====================================================================
+#  credentials.json / token.json están gitignored (NUNCA se versionan).
+#  Reutiliza el cliente OAuth "Desktop" del proyecto FotMob.
+drive:
+  credentials: "credentials.json"        # OAuth client (Desktop)
+  token: "token.json"                    # token ya autorizado
+  scopes: ["https://www.googleapis.com/auth/drive"]
+  carpeta_base: ["CIMENTA"]              # raíz en "Mi unidad"
+  # Las fotos van a:  Mi unidad / CIMENTA / {portal} / fotos / {id}.zip

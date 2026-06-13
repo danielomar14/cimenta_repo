@@ -68,6 +68,40 @@ decisiones / notas · pendientes / siguiente paso.
 %  ENTRADAS (la más reciente arriba)
 % =====================================================================
 
+\section*{2026-06-13 — Fotos de propiedades → Google Drive + borrado local (M1)}
+\addcontentsline{toc}{section}{2026-06-13 — Fotos → Google Drive}
+
+\subsection*{Qué se hizo}
+\begin{itemize}
+  \item Las propiedades de Casas y Terrenos traen \codigo{images} = lista de URLs
+        directas a S3 (\codigo{cyt-media.s3...}). Descarga directa, sin auth.
+  \item Se reutilizó el patrón de Drive del repo \textit{Prueba\_fotmob} (OAuth
+        Desktop, jerarquía de carpetas, resumable, log de subidos), \textbf{añadiendo
+        la pieza que faltaba: borrar local tras subir}.
+  \item Nuevo \codigo{src/ingesta/fotos\_a\_drive.py} — flujo \textbf{rolling}: por
+        propiedad → descarga fotos → ZIP \codigo{\{id\}.zip} → sube a Drive → borra
+        local. Así en disco nunca hay más que una propiedad a la vez.
+  \item Destino: \codigo{Mi unidad / CIMENTA / \{portal\} / fotos / \{id\}.zip}.
+  \item Credenciales (\codigo{credentials.json}, \codigo{token.json}) copiadas del
+        proyecto FotMob y \textbf{gitignored} (nunca se versionan).
+  \item Dependencias: \codigo{google-api-python-client},
+        \codigo{google-auth-oauthlib}, \codigo{google-auth-httplib2}.
+\end{itemize}
+
+\subsection*{Prueba}
+\begin{itemize}
+  \item Cuenta Drive: \codigo{danielomar.becerrilolguin@gmail.com} — 163 GB /
+        5 TB usados (espacio de sobra).
+  \item 3 propiedades de prueba → 3 ZIPs en Drive (5.2 / 1.8 / 0.3 MB),
+        temporal local borrado, \textbf{resume} verificado (re-correr salta los 3).
+\end{itemize}
+
+\subsection*{Pendientes / siguiente paso}
+\begin{itemize}
+  \pend Correr la subida de fotos para todas las propiedades scrapeadas.
+  \pend Encadenar scraping → fotos como pipeline (o correrlos por separado).
+\end{itemize}
+
 \section*{2026-06-13 — Recon de los 10 portales + PoC scraping (M1)}
 \addcontentsline{toc}{section}{2026-06-13 — Recon + PoC scraping}
 

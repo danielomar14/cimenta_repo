@@ -32,6 +32,11 @@ data/*
 *.local
 secrets.*
 *.key
+# Google Drive OAuth (NUNCA versionar)
+credentials.json
+token.json
+*credentials*.json
+*token*.json
 
 # ---- LaTeX (auxiliares; el PDF renderizado sí se versiona) ----
 *.aux
