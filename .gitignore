@@ -1,0 +1,48 @@
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+.installed.cfg
+*.egg
+
+# ---- Entornos virtuales ----
+.venv/
+venv/
+env/
+ENV/
+# (cimenta_env vive en Anaconda, fuera del repo)
+
+# ---- Jupyter ----
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/*
+
+# ---- Datos (no se versionan; se conserva la estructura con .gitkeep) ----
+data/*
+!data/.gitkeep
+
+# ---- Credenciales / configuración local ----
+.env
+.env.*
+*.local
+secrets.*
+*.key
+
+# ---- Herramientas y caché ----
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# ---- Sistema operativo / editor ----
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp

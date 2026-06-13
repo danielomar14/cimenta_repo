@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 160" width="560" height="160">
+  <!-- CIMENTA — Inteligencia inmobiliaria cuantitativa -->
+  <!-- Isotipo: tres bloques ascendentes + trazo de plusvalía -->
+  <g transform="translate(20,20)">
+    <rect x="0"  y="68" width="34" height="44" fill="#AEB6BD"/>
+    <rect x="44" y="36" width="34" height="76" fill="#2D7DD2"/>
+    <rect x="88" y="0"  width="34" height="112" fill="#16324F"/>
+    <polyline points="4,52 60,20 84,30 132,-6"
+              transform="translate(0,14)"
+              fill="none" stroke="#16324F" stroke-width="7"
+              stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="132" cy="8" r="5.5" fill="#16324F"/>
+  </g>
+  <g transform="translate(178,0)">
+    <text x="0" y="92" font-family="'Space Grotesk','Inter','Helvetica Neue',Arial,sans-serif"
+          font-size="58" font-weight="700" letter-spacing="4" fill="#16324F">CIMENTA</text>
+    <text x="2" y="122" font-family="'Inter','Helvetica Neue',Arial,sans-serif"
+          font-size="17" letter-spacing="1.5" fill="#43484D">Inteligencia inmobiliaria cuantitativa</text>
+  </g>
+</svg>

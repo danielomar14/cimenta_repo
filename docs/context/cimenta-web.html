@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CIMENTA — Inteligencia inmobiliaria cuantitativa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --azul:#16324F; --acento:#2D7DD2; --azul-claro:#D8E6F3;
+  --grafito:#43484D; --niebla:#AEB6BD; --fondo:#F5F7F9;
+  --exito:#2E8B6E; --blanco:#FFFFFF;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;color:var(--grafito);background:var(--fondo);line-height:1.65;font-size:16px}
+h1,h2,h3,.num{font-family:'Space Grotesk',sans-serif;color:var(--azul)}
+.wrap{max-width:1080px;margin:0 auto;padding:0 28px}
+a{color:var(--acento);text-decoration:none}
+
+/* ---------- nav ---------- */
+nav{position:sticky;top:0;background:rgba(245,247,249,.92);backdrop-filter:blur(8px);border-bottom:1px solid #E3E8EC;z-index:10}
+.nav-in{display:flex;justify-content:space-between;align-items:center;height:64px}
+.logo{display:flex;align-items:center;gap:11px;font-family:'Space Grotesk';font-weight:700;letter-spacing:2.5px;color:var(--azul);font-size:19px}
+.nav-links{display:flex;gap:28px;font-size:14px}
+.nav-links a{color:var(--grafito)}
+.nav-links a:hover{color:var(--azul)}
+
+/* ---------- hero ---------- */
+header{background:var(--azul);color:#fff;padding:96px 0 110px;position:relative;overflow:hidden}
+.hero-blocks{position:absolute;right:6%;bottom:0;opacity:.16}
+header h1{color:#fff;font-size:clamp(34px,5vw,56px);line-height:1.12;font-weight:700;max-width:760px}
+header h1 em{font-style:normal;color:#8FBCE8}
+.hero-sub{margin-top:22px;max-width:600px;color:#C7D5E2;font-size:18px}
+.ticker{margin-top:44px;display:inline-flex;align-items:center;gap:14px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);border-radius:6px;padding:13px 20px;font-size:14px;color:#D8E6F3}
+.dot{width:8px;height:8px;border-radius:50%;background:#5EC79B;animation:pulse 1.8s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ---------- secciones ---------- */
+section{padding:84px 0}
+.eyebrow{font-size:12.5px;letter-spacing:2.5px;text-transform:uppercase;color:var(--acento);font-weight:600;margin-bottom:10px}
+h2{font-size:clamp(26px,3.4vw,36px);margin-bottom:14px}
+.lead{max-width:640px;font-size:17px}
+
+/* módulos */
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px;margin-top:42px}
+.card{background:#fff;border:1px solid #E3E8EC;border-radius:8px;padding:26px 24px;transition:border-color .2s, transform .2s}
+.card:hover{border-color:var(--acento);transform:translateY(-2px)}
+.card .num{font-size:13px;color:var(--niebla);letter-spacing:1.5px;font-weight:700}
+.card h3{font-size:18px;margin:8px 0 8px}
+.card p{font-size:14.5px}
+
+/* ficha de oportunidad */
+.dark{background:var(--azul);color:#C7D5E2}
+.dark h2,.dark h3{color:#fff}
+.dark .eyebrow{color:#8FBCE8}
+.ficha{background:#fff;color:var(--grafito);border-radius:10px;margin-top:40px;overflow:hidden;box-shadow:0 18px 50px rgba(0,0,0,.28)}
+.ficha-head{background:var(--acento);color:#fff;padding:14px 26px;font-size:13.5px;font-weight:600;letter-spacing:.6px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px}
+.ficha-body{padding:26px;display:grid;grid-template-columns:1.25fr 1fr;gap:30px}
+.ficha h3{font-size:19px;margin-bottom:10px}
+.ficha p{font-size:14.5px;margin-bottom:12px}
+.tabla{width:100%;border-collapse:collapse;font-size:14px}
+.tabla td{padding:8px 4px;border-bottom:1px solid #EDF1F4}
+.tabla td:last-child{text-align:right;font-family:'Space Grotesk';font-weight:500;color:var(--azul)}
+.tabla tr.total td{border-top:2px solid var(--azul);border-bottom:none;font-weight:700;color:var(--azul)}
+.condicion{background:var(--fondo);border-left:3px solid var(--acento);padding:12px 16px;font-size:13.5px;border-radius:0 6px 6px 0}
+
+/* simulador */
+.sim{background:#fff;border:1px solid #E3E8EC;border-radius:12px;padding:40px;margin-top:42px}
+.sim-row{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end}
+.sim label{display:block;font-size:13px;font-weight:600;color:var(--azul);margin-bottom:7px;letter-spacing:.4px}
+.sim input,.sim select{font-family:'Space Grotesk';font-size:19px;padding:12px 16px;border:1.5px solid #D5DCE2;border-radius:7px;background:var(--fondo);color:var(--azul);width:220px;outline:none}
+.sim input:focus,.sim select:focus{border-color:var(--acento)}
+button{font-family:'Inter';font-weight:600;font-size:15px;background:var(--acento);color:#fff;border:none;border-radius:7px;padding:14px 30px;cursor:pointer;transition:background .2s}
+button:hover{background:#2368B0}
+.resultado{margin-top:34px;display:none}
+.res-head{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+.res-head .num{font-size:24px}
+.op{display:grid;grid-template-columns:34px 1fr auto auto;gap:16px;align-items:center;background:var(--fondo);border:1px solid #E8EDF1;border-radius:8px;padding:15px 18px;margin-bottom:10px;font-size:14.5px}
+.op .rank{font-family:'Space Grotesk';font-weight:700;color:var(--niebla);font-size:18px}
+.op .nombre{font-weight:600;color:var(--azul)}
+.op .tipo{font-size:12px;color:var(--grafito)}
+.op .mdp,.op .ret{font-family:'Space Grotesk';font-weight:500;color:var(--azul);text-align:right}
+.op .ret{color:var(--exito)}
+.disclaimer{font-size:12.5px;color:var(--niebla);margin-top:16px}
+
+/* valores */
+.valores{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:26px;margin-top:40px}
+.valor h3{font-size:16.5px;margin-bottom:6px}
+.valor p{font-size:14px}
+.valor .barra{width:34px;height:4px;background:var(--acento);margin-bottom:14px;border-radius:2px}
+
+footer{background:var(--azul);color:#9FB3C4;padding:46px 0;font-size:13.5px}
+.foot-in{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:18px}
+
+@media(max-width:760px){
+  .ficha-body{grid-template-columns:1fr}
+  .nav-links{display:none}
+  .op{grid-template-columns:28px 1fr auto}
+  .op .ret{grid-column:3}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<nav><div class="wrap nav-in">
+  <div class="logo">
+    <svg width="34" height="30" viewBox="0 0 140 120"><rect x="0" y="68" width="34" height="44" fill="#AEB6BD"/><rect x="44" y="36" width="34" height="76" fill="#2D7DD2"/><rect x="88" y="0" width="34" height="112" fill="#16324F"/><polyline points="4,66 60,34 84,44 132,8" fill="none" stroke="#16324F" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    CIMENTA
+  </div>
+  <div class="nav-links">
+    <a href="#modulos">Cómo funciona</a>
+    <a href="#oportunidad">Una oportunidad</a>
+    <a href="#simulador">Simulador</a>
+    <a href="#valores">Valores</a>
+  </div>
+</div></nav>
+
+<header>
+  <svg class="hero-blocks" width="380" height="300" viewBox="0 0 380 300">
+    <rect x="0" y="190" width="90" height="110" fill="#fff"/>
+    <rect x="115" y="110" width="90" height="190" fill="#fff"/>
+    <rect x="230" y="20" width="90" height="280" fill="#fff"/>
+  </svg>
+  <div class="wrap">
+    <h1>El mercado inmobiliario publica sus precios todos los días.<br><em>Nosotros los leemos todos a la vez.</em></h1>
+    <p class="hero-sub">CIMENTA convierte los anuncios de los diez portales más grandes de México en valuaciones automáticas, pronósticos de plusvalía por colonia y oportunidades de inversión con evidencia.</p>
+    <div class="ticker"><span class="dot"></span><span id="tick">Monitoreando 347,218 anuncios activos en la ZMVM</span></div>
+  </div>
+</header>
+
+<section id="modulos"><div class="wrap">
+  <div class="eyebrow">El sistema</div>
+  <h2>Seis módulos, una decisión</h2>
+  <p class="lead">Cada capa agrega significado a la anterior: del texto sucio de un anuncio a un portafolio óptimo de inversión.</p>
+  <div class="grid">
+    <div class="card"><div class="num">M1 · INGESTA</div><h3>Diez portales, un solo mercado</h3><p>Recolección diaria de Inmuebles24, Propiedades.com, Lamudi, Vivanuncios, Mercado Libre y más. Deduplicación por geometría, texto y huella visual de fotos. El anuncio miente; el conjunto de anuncios, no.</p></div>
+    <div class="card"><div class="num">M2 · VALUACIÓN</div><h3>Cuánto debería valer</h3><p>Un AVM con intervalos de confianza estima el valor real de cada propiedad, independiente del optimismo del vendedor. La Guía Autométrica de las casas, recalculada cada noche.</p></div>
+    <div class="card"><div class="num">M3 · PLUSVALÍA</div><h3>Qué zona sube, y cuánto</h3><p>Permisos de obra, comercios nuevos, transporte por inaugurar y contagio de colonias vecinas anticipan el precio. Buscamos al equipo revelación antes de que se llene el estadio.</p></div>
+    <div class="card"><div class="num">M4 · CAPA URBANA</div><h3>Suelo y conectividad</h3><p>Uso de suelo oficial (¿cuántos niveles puedes construir?) y minutos reales a Reforma, Polanco, Del Valle o Roma en hora pico. El mercado no paga kilómetros: paga minutos.</p></div>
+    <div class="card"><div class="num">M5 · OPORTUNIDADES</div><h3>Tres jugadas, cero corazonadas</h3><p>Comprar barato (subvaluación contra el AVM), comprar antes de que suba (plusvalía) o comprar suelo disfrazado de casa (redensificación). Cada ficha trae su evidencia y su condición de fracaso.</p></div>
+    <div class="card"><div class="num">M6 · PORTAFOLIO</div><h3>«Tengo 30 millones»</h3><p>Un optimizador selecciona las mejores jugadas vigentes, diversifica por zona y tipo, y entrega retorno esperado con intervalo. Lógica de gestor de riesgo, no de vendedor.</p></div>
+  </div>
+</div></section>
+
+<section class="dark" id="oportunidad"><div class="wrap">
+  <div class="eyebrow">Así se ve una ficha</div>
+  <h2>Honestidad como producto</h2>
+  <p class="lead">Cualquiera promete ganancias. Nuestro activo es decirte cuándo los números son delgados y qué condición convierte una jugada regular en una buena.</p>
+
+  <div class="ficha">
+    <div class="ficha-head"><span>OPORTUNIDAD CIM-0847 · Redensificación</span><span>Col. Nativitas · Benito Juárez</span></div>
+    <div class="ficha-body">
+      <div>
+        <h3>La tesis</h3>
+        <p>Casa de 1965 sobre terreno de 240 m² con zonificación habitacional de 3 niveles, a 400 m del Metro Nativitas. Caben ~3 departamentos de 75 m²; los nuevos comparables en la colonia se venden en ~2.0 MDP por unidad.</p>
+        <p>La zona está en el <strong>percentil 88 de plusvalía pronosticada</strong>: contagio desde Portales y Del Valle, +34% de obra autorizada interanual, conectividad 82/100.</p>
+        <div class="condicion"><strong>Veredicto del motor:</strong> en escenario central el margen es delgado. La jugada se vuelve atractiva si se negocia la compra a ≤ 2.7 MDP (el vendedor lleva 140 días en mercado y dos recortes de precio) o si se confirma un 4º nivel por corredor de redensificación.</div>
+      </div>
+      <div>
+        <h3>Los números</h3>
+        <table class="tabla">
+          <tr><td>Compra del inmueble</td><td>3.00 MDP</td></tr>
+          <tr><td>Demolición + construcción</td><td>2.60 MDP</td></tr>
+          <tr><td>Indirectos y licencias</td><td>0.85 MDP</td></tr>
+          <tr class="total"><td>Inversión total</td><td>6.45 MDP</td></tr>
+          <tr><td>Venta (3 × 2.0 MDP)</td><td>6.00 MDP</td></tr>
+          <tr><td>Plusvalía zona, 24 meses</td><td>+0.72 MDP</td></tr>
+          <tr class="total"><td>Resultado a 24 meses</td><td>+0.27 a +1.1 MDP</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</div></section>
+
+<section id="simulador"><div class="wrap">
+  <div class="eyebrow">Demo conceptual</div>
+  <h2>¿Cuánto tienes para invertir?</h2>
+  <p class="lead">Escribe un capital y mira cómo respondería el Constructor de Portafolio. (Demostración con datos ilustrativos.)</p>
+
+  <div class="sim">
+    <div class="sim-row">
+      <div><label for="capital">Capital disponible (MDP)</label><input id="capital" type="number" min="2" max="500" value="30" step="1"></div>
+      <div><label for="perfil">Perfil</label><select id="perfil"><option value="bal">Balanceado</option><option value="con">Conservador</option><option value="agr">Agresivo</option></select></div>
+      <button onclick="simular()">Construir portafolio</button>
+    </div>
+
+    <div class="resultado" id="resultado">
+      <div class="res-head">
+        <h3 id="res-titulo">Portafolio sugerido</h3>
+        <div><span style="font-size:13px;color:var(--niebla)">Retorno esperado</span> <span class="num" id="res-ret" style="color:var(--exito)"></span></div>
+      </div>
+      <div id="ops"></div>
+      <p class="disclaimer">Demostración con cifras ilustrativas. CIMENTA informa con análisis cuantitativo y supuestos explícitos; no constituye asesoría de inversión. Toda operación real exige due diligence legal, inspección física y verificación documental de zonificación.</p>
+    </div>
+  </div>
+</div></section>
+
+<section id="valores"><div class="wrap">
+  <div class="eyebrow">La empresa</div>
+  <h2>Valores que se pueden auditar</h2>
+  <div class="valores">
+    <div class="valor"><div class="barra"></div><h3>Rigor antes que retórica</h3><p>Cada recomendación lleva un número, un intervalo y la evidencia que la sustenta.</p></div>
+    <div class="valor"><div class="barra"></div><h3>Transparencia del modelo</h3><p>Si el sistema dice «compra», puedes ver por qué: comparables, supuestos, sensibilidad.</p></div>
+    <div class="valor"><div class="barra"></div><h3>Datos con ética</h3><p>Solo información pública, sin datos personales, con límites declarados.</p></div>
+    <div class="valor"><div class="barra"></div><h3>Humildad estadística</h3><p>Los modelos se equivocan. Los nuestros saben cuánto, y lo dicen. Nuestro error histórico será público.</p></div>
+  </div>
+</div></section>
+
+<footer><div class="wrap foot-in">
+  <div class="logo" style="color:#fff">
+    <svg width="30" height="26" viewBox="0 0 140 120"><rect x="0" y="68" width="34" height="44" fill="#AEB6BD"/><rect x="44" y="36" width="34" height="76" fill="#5E9BD8"/><rect x="88" y="0" width="34" height="112" fill="#fff"/><polyline points="4,66 60,34 84,44 132,8" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    CIMENTA
+  </div>
+  <div>Inteligencia inmobiliaria cuantitativa · Ciudad de México · 2026</div>
+</div></footer>
+
+<script>
+const base = [
+ {n:"Redensificación: casa → 3 deptos", z:"Col. Nativitas, Benito Juárez", t:"Jugada C · desarrollo", k:6.5, r:"14–22%"},
+ {n:"Depto subvaluado −16% vs AVM", z:"Col. Narvarte Poniente", t:"Jugada A · descuento", k:4.2, r:"9–13%"},
+ {n:"Casa en corredor de contagio", z:"San Pedro de los Pinos", t:"Jugada B · plusvalía", k:5.8, r:"8–14%"},
+ {n:"Terreno HC/4 junto a obra de transporte", z:"Azcapotzalco", t:"Jugada B+C", k:7.1, r:"11–19%"},
+ {n:"Depto líquido, ancla del portafolio", z:"Col. Del Valle Sur", t:"Jugada A · estabilidad", k:3.9, r:"5–8%"},
+ {n:"Casa para remodelación ligera", z:"Col. Portales Norte", t:"Jugada A+B", k:3.1, r:"8–12%"},
+ {n:"Depto en preventa, fase temprana", z:"Col. Escandón", t:"Jugada B · plusvalía", k:2.6, r:"7–11%"}
+];
+function simular(){
+  const K = Math.max(2, parseFloat(document.getElementById('capital').value)||30);
+  const perfil = document.getElementById('perfil').value;
+  let pool = base.slice();
+  if(perfil==='con') pool = pool.filter(o=>!o.t.includes('C')||o.t.includes('A'));
+  if(perfil==='agr') pool.sort((a,b)=>parseInt(b.r)-parseInt(a.r));
+  const colchon = K*0.085;
+  let restante = K - colchon, sel = [];
+  for(const o of pool){
+    const escala = K/30;
+    const k = Math.round(o.k*escala*10)/10;
+    if(k<=restante && sel.length<5){ sel.push({...o,k}); restante -= k; }
+  }
+  if(sel.length===0){ sel.push({...pool[pool.length-1], k: Math.round((K-colchon)*10)/10}); restante = 0; }
+  const ops = document.getElementById('ops');
+  ops.innerHTML = sel.map((o,i)=>`
+    <div class="op">
+      <div class="rank">${i+1}</div>
+      <div><div class="nombre">${o.n}</div><div class="tipo">${o.z} · ${o.t}</div></div>
+      <div class="mdp">${o.k.toFixed(1)} MDP</div>
+      <div class="ret">${o.r}/a</div>
+    </div>`).join('') + `
+    <div class="op" style="background:#fff;border-style:dashed">
+      <div class="rank">·</div>
+      <div><div class="nombre">Colchón de liquidez</div><div class="tipo">Imprevistos de obra y escrituración</div></div>
+      <div class="mdp">${(colchon+restante).toFixed(1)} MDP</div><div class="ret"></div>
+    </div>`;
+  document.getElementById('res-titulo').textContent = `Portafolio sugerido · ${K} MDP · ${sel.length} posiciones`;
+  document.getElementById('res-ret').textContent = perfil==='con' ? '7–11% anual' : perfil==='agr' ? '11–17% anual' : '9.5–15% anual';
+  document.getElementById('resultado').style.display = 'block';
+  document.getElementById('resultado').scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+const frases = [
+ "Monitoreando 347,218 anuncios activos en la ZMVM",
+ "AVM recalculado hace 6 horas · MdAPE 11.4%",
+ "12 oportunidades nuevas detectadas hoy",
+ "Col. Nativitas: percentil 88 de plusvalía pronosticada"
+];
+let fi = 0;
+setInterval(()=>{ fi=(fi+1)%frases.length; document.getElementById('tick').textContent = frases[fi]; }, 4200);
+</script>
+</body>
+</html>

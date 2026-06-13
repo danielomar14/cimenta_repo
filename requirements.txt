@@ -1,0 +1,7 @@
+# CIMENTA — dependencias de Python (entorno: cimenta_env, Python 3.12)
+#
+# El entorno se crea vacío. Las dependencias se irán agregando etapa por etapa
+# conforme cada módulo (M1–M6) las necesite. Por ahora no hay dependencias fijadas.
+#
+# Para regenerar este archivo desde el entorno activo:
+#   pip freeze > requirements.txt
