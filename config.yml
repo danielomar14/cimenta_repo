@@ -146,6 +146,31 @@ ingesta:
       - cuautitlan-izcalli
       - ecatepec
 
+  # ---- Propiedades.com (Nivel B — vía CloakBrowser) ------------------
+  #  Tras Cloudflare, pero Next.js: __NEXT_DATA__ → props.pageProps.results.properties
+  #  ¡Trae coordenadas (latitude/longitude, valid_coords) y fechas (published/days_ago)!
+  #  URL: /{estado}/{tipo}-{operacion}[?pagina=N]  (47/pág).
+  propiedades:
+    base_url: "https://propiedades.com"
+    warmup_url: "https://propiedades.com/df/departamentos-venta"
+    max_pages: 50
+    meses_atras: 3
+    settle: 6.0
+    estados:                  # CDMX = df ; ZMVM = estado-de-mexico
+      - df
+      - estado-de-mexico
+    tipos:
+      - departamentos
+      - casas
+      - terrenos
+      - oficinas
+      - locales-comerciales
+      - bodegas
+      - edificios
+    operaciones:              # slug_url: etiqueta
+      venta: venta
+      renta: renta
+
 
 # =====================================================================
 #  Google Drive — subida de fotos y respaldos
