@@ -68,6 +68,48 @@ decisiones / notas · pendientes / siguiente paso.
 %  ENTRADAS (la más reciente arriba)
 % =====================================================================
 
+\section*{2026-06-13 — M3 Plusvalía: índice de momentum por colonia}
+\addcontentsline{toc}{section}{2026-06-13 — M3 Plusvalía (crimen + comercios)}
+
+\subsection*{Qué se hizo (fuentes de datos abiertos)}
+\begin{itemize}
+  \item \textbf{Delincuencia} — \codigo{src/plusvalia/crimen.py}: descarga las
+        Carpetas de investigación FGJ-CDMX (datos abiertos, CSV por año; el host
+        tiene SSL expirado → \codigo{verify=False}). Agrega por colonia: conteo
+        por año, tasa anualizada y \textbf{tendencia} 2022→2024. 1{,}752 colonias;
+        tendencia mediana \textbf{-44.8\%} (el crimen bajó fuerte en CDMX).
+  \item \textbf{Comercios} — \codigo{src/plusvalia/comercios.py}: descarga DENUE
+        (INEGI, 462{,}732 unidades económicas en CDMX). Por colonia: total,
+        comercio de consumo (SCIAN 46+72) y \textbf{comercios nuevos} (altas
+        2025-2026, proxy post-Censo). \codigo{fecha\_alta} está sesgada por las
+        actualizaciones masivas del Censo (2019, 2024) → se usan solo altas recientes.
+  \item \textbf{Índice} — \codigo{src/plusvalia/indice.py}: combina en 0–100 por
+        colonia: seguridad (crimen↓) 40\% + crecimiento comercio 35\% + vitalidad
+        25\% (percentiles). Une por \textbf{colonia base} (sin sufijos
+        NORTE/SUR/CENTRO) porque los nombres difieren entre fuentes. 2{,}348
+        colonias; añade precio/m² mediano de contexto.
+  \item Nueva pestaña \textbf{📈 Plusvalía} en Streamlit (ranking + tabla con barra
+        de momentum).
+\end{itemize}
+
+\subsection*{Honestidad / alcance}
+\begin{itemize}
+  \item Es un índice de \textbf{indicadores líderes}, NO un modelo supervisado de
+        apreciación: para predecir "subirá X\%" falta histórico de precios por
+        colonia (se acumula con el tiempo). El framework queda listo para
+        volverse supervisado.
+  \item El conteo de crimen no está normalizado por población/área (la señal
+        fuerte es la tendencia). El join por colonia base pierde algo de
+        granularidad (Del Valle Centro vs Sur).
+\end{itemize}
+
+\subsection*{Pendiente / siguiente}
+\begin{itemize}
+  \pend Crosswalk/join espacial de colonias (polígonos) para no depender de nombres.
+  \pend Más señales M3: permisos de obra, transporte, contagio vecinal.
+  \pend Snapshot histórico DENUE para crecimiento interanual fino.
+\end{itemize}
+
 \section*{2026-06-13 — AVM (M2 Valuación) + Oportunidades (M5) en Streamlit}
 \addcontentsline{toc}{section}{2026-06-13 — AVM + Oportunidades}
 

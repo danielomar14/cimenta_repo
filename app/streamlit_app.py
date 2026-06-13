@@ -5,6 +5,7 @@ Pestañas:
   🗺️ Mapa          — todas las propiedades geolocalizadas (OpenStreetMap)
   🤖 Modelo (AVM)  — valuación: train/validation/test, métricas y performance
   💎 Oportunidades — casas/deptos de Benito Juárez < 3 MDP, subvaluadas
+  📈 Plusvalía      — índice de momentum por colonia (crimen FGJ + comercios DENUE)
 
 Correr:
     conda activate cimenta_env
@@ -109,13 +110,20 @@ def load_avm():
     return metrics, _read_csv(PROC / "avm_predicciones.csv"), _read_csv(PROC / "avm_importancias.csv"), _read_csv(PROC / "oportunidades_bj.csv")
 
 
+@st.cache_data(ttl=120, show_spinner=False)
+def load_plusvalia():
+    p = PROC / "indice_plusvalia_colonia.csv"
+    return pd.read_csv(p) if p.exists() else None
+
+
 st.markdown('<div class="cim-title">CIMENTA</div>', unsafe_allow_html=True)
 st.markdown('<div class="cim-sub">Inteligencia inmobiliaria cuantitativa · CDMX y ZMVM</div>', unsafe_allow_html=True)
 with st.sidebar:
     if st.button("🔄 Refrescar datos"):
         st.cache_data.clear(); st.rerun()
 
-tab_mapa, tab_modelo, tab_opp = st.tabs(["🗺️ Mapa", "🤖 Modelo (AVM)", "💎 Oportunidades"])
+tab_mapa, tab_modelo, tab_opp, tab_plus = st.tabs(
+    ["🗺️ Mapa", "🤖 Modelo (AVM)", "💎 Oportunidades", "📈 Plusvalía"])
 
 # ══════════════════════════════ MAPA ══════════════════════════════
 with tab_mapa:
@@ -234,3 +242,48 @@ with tab_opp:
                                     "Valor estimado": st.column_config.NumberColumn(format="$ %d"),
                                     "Subvaluación %": st.column_config.NumberColumn(format="%.1f%%"),
                                     "Link": st.column_config.LinkColumn("Link", display_text="ver →")})
+
+# ══════════════════════════════ PLUSVALÍA ══════════════════════════════
+with tab_plus:
+    idx = load_plusvalia()
+    st.markdown("### Momentum de plusvalía por colonia")
+    st.caption("Índice 0–100 de indicadores **líderes** (datos públicos): seguridad "
+               "(tendencia de delincuencia FGJ), crecimiento de comercio y vitalidad "
+               "comercial (DENUE-INEGI). Responde *¿esta colonia va al alza?* — no es "
+               "un pronóstico supervisado de precio (eso requiere histórico, que se acumula).")
+    if idx is None or not len(idx):
+        st.info("Aún no hay índice. Corre:  `python -m src.plusvalia.crimen && "
+                "python -m src.plusvalia.comercios && python -m src.plusvalia.indice`")
+    else:
+        alcaldias = ["(todas)"] + sorted(idx["alcaldia"].dropna().unique())
+        f_alc = st.selectbox("Alcaldía", alcaldias, index=alcaldias.index("BENITO JUAREZ") if "BENITO JUAREZ" in alcaldias else 0)
+        v = idx if f_alc == "(todas)" else idx[idx["alcaldia"] == f_alc]
+        v = v.sort_values("indice_momentum", ascending=False)
+
+        a, b, c = st.columns(3)
+        a.metric("Colonias", f"{len(v):,}")
+        b.metric("Momentum mediano", f"{v['indice_momentum'].median():.0f}/100")
+        b2 = v["crimen_tendencia_pct"].median()
+        c.metric("Tendencia crimen (mediana)", f"{b2:+.0f}%")
+
+        L, R = st.columns([3, 4], gap="large")
+        with L:
+            st.markdown("##### Top colonias por momentum")
+            top = v.head(15).set_index("colonia")["indice_momentum"]
+            st.bar_chart(top, horizontal=True, color=VERDE)
+        with R:
+            st.markdown("##### Detalle")
+            disp = v.rename(columns={"colonia": "Colonia", "alcaldia": "Alcaldía",
+                                     "indice_momentum": "Momentum", "crimen_tendencia_pct": "Crimen Δ%",
+                                     "comercios_total": "Comercios", "comercios_nuevos_pct": "Com. nuevos %",
+                                     "precio_m2_mediano": "$/m²"})
+            cols = [c for c in ["Colonia", "Alcaldía", "Momentum", "Crimen Δ%", "Comercios", "Com. nuevos %", "$/m²"]
+                    if c in disp.columns]
+            if f_alc != "(todas)":
+                cols = [c for c in cols if c != "Alcaldía"]
+            st.dataframe(disp[cols], hide_index=True, height=520, width="stretch",
+                         column_config={"Momentum": st.column_config.ProgressColumn("Momentum", min_value=0, max_value=100, format="%.0f"),
+                                        "$/m²": st.column_config.NumberColumn(format="$ %d"),
+                                        "Crimen Δ%": st.column_config.NumberColumn(format="%.0f%%"),
+                                        "Com. nuevos %": st.column_config.NumberColumn(format="%.1f%%")})
+        st.caption("Fuentes: Carpetas de investigación FGJ-CDMX · DENUE (INEGI) · precios CIMENTA.")
