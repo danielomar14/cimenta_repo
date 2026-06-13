@@ -1,7 +1,9 @@
 """
-CIMENTA · Visor de propiedades (Casas y Terrenos)
+CIMENTA · Visor de propiedades (multi-portal)
 
-Dashboard minimalista para explorar el CSV scrapeado + mapa OpenStreetMap.
+Lee TODOS los CSVs de data/processed/ (casasyterrenos, lamudi, inmuebles24,
+propiedades, vivanuncios…), los normaliza a un esquema común y los muestra
+juntos en un mapa OpenStreetMap + tabla.
 
 Correr:
     conda activate cimenta_env
@@ -16,14 +18,18 @@ from folium.plugins import MarkerCluster
 from streamlit_folium import st_folium
 
 ROOT = Path(__file__).resolve().parents[1]
-CSV = ROOT / "data" / "processed" / "casasyterrenos.csv"
+PROC = ROOT / "data" / "processed"
 
-# Paleta CIMENTA
-AZUL, ACENTO, VERDE, NIEBLA, FONDO = "#16324F", "#2D7DD2", "#2E8B6E", "#AEB6BD", "#F5F7F9"
+AZUL, ACENTO, VERDE, NIEBLA = "#16324F", "#2D7DD2", "#2E8B6E", "#AEB6BD"
+PORTAL_COLOR = {
+    "casasyterrenos": "#2D7DD2",  # azul
+    "lamudi": "#2E8B6E",          # verde
+    "inmuebles24": "#E07A3F",     # naranja
+    "propiedades": "#8E6FC7",     # morado
+    "vivanuncios": "#C7506B",     # rosa
+}
 
 st.set_page_config(page_title="CIMENTA · Propiedades", page_icon="🏙️", layout="wide")
-
-# ── Estilo minimalista ────────────────────────────────────────────────────────────
 st.markdown(
     f"""
     <style>
@@ -31,39 +37,20 @@ st.markdown(
       html, body, [class*="css"] {{ font-family: 'Inter', sans-serif; }}
       h1, h2, h3 {{ font-family: 'Space Grotesk', sans-serif; color: {AZUL}; }}
       #MainMenu, footer, header {{ visibility: hidden; }}
-      .block-container {{ padding-top: 2.2rem; padding-bottom: 1rem; max-width: 1280px; }}
-      [data-testid="stMetric"] {{
-        background: #fff; border: 1px solid #E3E8EC; border-radius: 10px;
-        padding: 14px 18px;
-      }}
-      [data-testid="stMetricLabel"] {{ color: {NIEBLA}; font-size: 12px; letter-spacing: .4px; }}
-      [data-testid="stMetricValue"] {{ font-family: 'Space Grotesk'; color: {AZUL}; }}
-      .cim-title {{ font-family:'Space Grotesk'; font-weight:700; font-size:30px; color:{AZUL};
-                    letter-spacing:1px; margin-bottom:0; }}
+      .block-container {{ padding-top: 2.2rem; padding-bottom: 1rem; max-width: 1320px; }}
+      [data-testid="stMetric"] {{ background:#fff; border:1px solid #E3E8EC; border-radius:10px; padding:14px 18px; }}
+      [data-testid="stMetricLabel"] {{ color:{NIEBLA}; font-size:12px; letter-spacing:.4px; }}
+      [data-testid="stMetricValue"] {{ font-family:'Space Grotesk'; color:{AZUL}; }}
+      .cim-title {{ font-family:'Space Grotesk'; font-weight:700; font-size:30px; color:{AZUL}; letter-spacing:1px; margin-bottom:0; }}
       .cim-sub {{ color:{NIEBLA}; font-size:14px; margin-top:2px; }}
-      .leaflet-container {{ border-radius: 12px; }}
+      .leaflet-container {{ border-radius:12px; }}
     </style>
     """,
     unsafe_allow_html=True,
 )
 
 
-# ── Datos ─────────────────────────────────────────────────────────────────────────
-@st.cache_data(show_spinner=False)
-def load_data() -> pd.DataFrame:
-    df = pd.read_csv(CSV)
-    for c in ["priceSale", "priceRent", "surface", "construction", "rooms", "bathrooms", "lat", "lng"]:
-        df[c] = pd.to_numeric(df[c], errors="coerce")
-    # precio según operación
-    df["precio"] = df.apply(
-        lambda r: r["priceSale"] if r["operacion"] == "venta" else r["priceRent"], axis=1
-    )
-    # coordenadas válidas dentro de un bounding box generoso de la ZMVM
-    df = df[df["lat"].between(18.9, 20.1) & df["lng"].between(-99.6, -98.6)]
-    return df
-
-
-def money(x) -> str:
+def _money(x) -> str:
     if pd.isna(x) or x == 0:
         return "—"
     if x >= 1_000_000:
@@ -73,104 +60,120 @@ def money(x) -> str:
     return f"${x:,.0f}"
 
 
-if not CSV.exists():
-    st.error("No se encontró el CSV. Corre primero el scraper:  `python -m src.ingesta.casasyterrenos`")
+def _normalize(df: pd.DataFrame, portal: str) -> pd.DataFrame:
+    c = df.columns
+    out = pd.DataFrame()
+    out["portal"] = df["portal"] if "portal" in c else portal
+    out["tipo"] = df.get("tipo")
+    out["operacion"] = df.get("operacion")
+    out["municipio"] = df.get("municipio")
+    out["colonia"] = df["colonia"] if "colonia" in c else df.get("neighborhood")
+    out["name"] = df["name"] if "name" in c else out["colonia"]
+    # precio unificado
+    if "precio" in c:
+        out["precio"] = pd.to_numeric(df["precio"], errors="coerce")
+    elif "priceSale" in c:
+        op = df.get("operacion")
+        out["precio"] = pd.to_numeric(
+            df["priceSale"].where(op == "venta", df.get("priceRent")), errors="coerce")
+    else:
+        out["precio"] = pd.NA
+    out["surface"] = pd.to_numeric(df["surface"] if "surface" in c else df.get("size_m2"), errors="coerce")
+    out["rooms"] = pd.to_numeric(df.get("rooms"), errors="coerce")
+    out["bathrooms"] = pd.to_numeric(df.get("bathrooms"), errors="coerce")
+    out["lat"] = pd.to_numeric(df.get("lat"), errors="coerce")
+    out["lng"] = pd.to_numeric(df.get("lng"), errors="coerce")
+    out["url"] = df.get("url")
+    return out
+
+
+@st.cache_data(ttl=120, show_spinner=False)
+def load_all() -> pd.DataFrame:
+    frames = []
+    for csv in sorted(PROC.glob("*.csv")):
+        try:
+            df = pd.read_csv(csv, on_bad_lines="skip", low_memory=False)
+        except Exception:
+            continue
+        if len(df):
+            frames.append(_normalize(df, csv.stem))
+    if not frames:
+        return pd.DataFrame()
+    df = pd.concat(frames, ignore_index=True)
+    df = df[df["lat"].between(18.9, 20.1) & df["lng"].between(-99.6, -98.6)]
+    return df
+
+
+st.markdown('<div class="cim-title">CIMENTA</div>', unsafe_allow_html=True)
+st.markdown('<div class="cim-sub">Propiedades · CDMX y ZMVM · multi-portal — inteligencia inmobiliaria cuantitativa</div>', unsafe_allow_html=True)
+
+df = load_all()
+if df.empty:
+    st.warning("Aún no hay datos geolocalizados. Corre los scrapers en src/ingesta/ (y geocode para Inmuebles24).")
     st.stop()
 
-df = load_data()
-
-# ── Encabezado ────────────────────────────────────────────────────────────────────
-st.markdown('<div class="cim-title">CIMENTA</div>', unsafe_allow_html=True)
-st.markdown(
-    '<div class="cim-sub">Propiedades · Casas y Terrenos · CDMX y ZMVM '
-    '— inteligencia inmobiliaria cuantitativa</div>',
-    unsafe_allow_html=True,
-)
-st.write("")
-
-# ── Filtros (sidebar) ─────────────────────────────────────────────────────────────
 with st.sidebar:
-    st.markdown(f"### Filtros")
+    st.markdown("### Filtros")
+    if st.button("🔄 Refrescar datos"):
+        st.cache_data.clear(); st.rerun()
+    portales = sorted(df["portal"].dropna().unique())
+    f_port = st.multiselect("Portal", portales, default=portales)
     ops = sorted(df["operacion"].dropna().unique())
     f_op = st.multiselect("Operación", ops, default=ops)
-    tipos = sorted(df["tipo"].dropna().unique())
-    f_tipo = st.multiselect("Tipo", tipos, default=tipos)
-
-    munis = sorted(df["municipio"].dropna().unique())
-    f_muni = st.multiselect("Municipio (etiqueta del anuncio)", munis, default=[])
-
     rec_max = int(df["rooms"].fillna(0).max() or 0)
     f_rec = st.slider("Recámaras (mínimo)", 0, max(rec_max, 1), 0)
-
     tile = st.radio("Mapa base", ["Minimalista", "OpenStreetMap"], horizontal=True)
-    st.caption(f"{len(df):,} propiedades con coordenadas válidas.")
+    st.caption(f"{len(df):,} propiedades geolocalizadas.")
 
-# aplicar filtros
-m = df["operacion"].isin(f_op) & df["tipo"].isin(f_tipo) & (df["rooms"].fillna(0) >= f_rec)
-if f_muni:
-    m &= df["municipio"].isin(f_muni)
+m = df["portal"].isin(f_port) & df["operacion"].isin(f_op) & (df["rooms"].fillna(0) >= f_rec)
 fdf = df[m]
 
-# ── KPIs ──────────────────────────────────────────────────────────────────────────
+# KPIs
+k = st.columns(2 + len(portales))
+k[0].metric("Propiedades", f"{len(fdf):,}")
 venta = fdf[fdf["operacion"] == "venta"]
-renta = fdf[fdf["operacion"] == "renta"]
-k1, k2, k3, k4 = st.columns(4)
-k1.metric("Propiedades", f"{len(fdf):,}")
-k2.metric("Venta / Renta", f"{len(venta):,} / {len(renta):,}")
-k3.metric("Precio mediano (venta)", money(venta["precio"].median()))
-k4.metric("m² mediano (terreno)", f"{fdf['surface'].median():.0f}" if len(fdf) else "—")
+k[1].metric("Precio mediano (venta)", _money(venta["precio"].median()))
+counts = fdf["portal"].value_counts()
+for i, p in enumerate(portales):
+    k[2 + i].metric(p[:12], f"{int(counts.get(p, 0)):,}")
 
 st.write("")
-
-# ── Mapa OpenStreetMap ────────────────────────────────────────────────────────────
 left, right = st.columns([7, 5], gap="medium")
 
 with left:
     if len(fdf):
-        center = [fdf["lat"].median(), fdf["lng"].median()]
-        tiles = "CartoDB positron" if tile == "Minimalista" else "OpenStreetMap"
-        fmap = folium.Map(location=center, zoom_start=12, tiles=tiles, control_scale=True)
-        cluster = MarkerCluster(name="Propiedades").add_to(fmap)
-
-        def txt(x):
-            return "" if pd.isna(x) else str(x)
-
-        def num(x):
-            return int(x) if pd.notna(x) else "—"
-
+        fmap = folium.Map(location=[fdf["lat"].median(), fdf["lng"].median()],
+                          zoom_start=11,
+                          tiles="CartoDB positron" if tile == "Minimalista" else "OpenStreetMap",
+                          control_scale=True)
+        cluster = MarkerCluster().add_to(fmap)
         for _, r in fdf.iterrows():
-            color = ACENTO if r["operacion"] == "venta" else VERDE
-            url = txt(r["url"])
-            link = f"<a href='{url}' target='_blank'>Ver anuncio →</a>" if url else ""
+            color = PORTAL_COLOR.get(r["portal"], NIEBLA)
+            nm = "" if pd.isna(r["name"]) else str(r["name"])[:60]
+            col = "" if pd.isna(r["colonia"]) else str(r["colonia"])
+            url = "" if pd.isna(r["url"]) else str(r["url"])
+            link = f"<a href='{url}' target='_blank'>Ver →</a>" if url else ""
             popup = folium.Popup(
-                f"<b>{txt(r['name'])[:60]}</b><br>"
-                f"{txt(r['tipo']).capitalize()} · {txt(r['operacion'])}<br>"
-                f"<span style='color:{AZUL};font-weight:600'>{money(r['precio'])} {txt(r['currency'])}</span><br>"
-                f"{num(r['surface'])} m² · {num(r['rooms'])} rec · {num(r['bathrooms'])} baños<br>"
-                f"<i>{txt(r['neighborhood'])}</i><br>"
-                f"{link}",
-                max_width=260,
+                f"<b>{nm}</b><br>"
+                f"<span style='color:{color};font-weight:600'>{r['portal']}</span> · {r.get('operacion','')}<br>"
+                f"<span style='color:{AZUL};font-weight:600'>{_money(r['precio'])}</span> · "
+                f"{int(r['surface']) if pd.notna(r['surface']) else '—'} m² · "
+                f"{int(r['rooms']) if pd.notna(r['rooms']) else '—'} rec<br>"
+                f"<i>{col}</i><br>{link}",
+                max_width=250,
             )
-            folium.CircleMarker(
-                location=[r["lat"], r["lng"]], radius=5, color=color, weight=1,
-                fill=True, fill_color=color, fill_opacity=0.75, popup=popup,
-            ).add_to(cluster)
-        st_folium(fmap, use_container_width=True, height=560, returned_objects=[])
-    else:
-        st.info("No hay propiedades con los filtros actuales.")
-    st.caption("🔵 Venta · 🟢 Renta · tiles © OpenStreetMap / CartoDB")
+            folium.CircleMarker([r["lat"], r["lng"]], radius=4, color=color, weight=1,
+                                fill=True, fill_color=color, fill_opacity=0.7, popup=popup).add_to(cluster)
+        st_folium(fmap, use_container_width=True, height=580, returned_objects=[])
+    leg = " · ".join(f"<span style='color:{PORTAL_COLOR.get(p, NIEBLA)}'>●</span> {p}" for p in portales)
+    st.markdown(f"<div style='font-size:13px'>{leg}</div>", unsafe_allow_html=True)
+    st.caption("tiles © OpenStreetMap / CartoDB")
 
 with right:
     st.markdown("##### Detalle")
-    cols = ["name", "tipo", "operacion", "precio", "surface", "rooms", "bathrooms", "neighborhood", "url"]
-    show = fdf[cols].rename(columns={
-        "name": "Anuncio", "tipo": "Tipo", "operacion": "Op.", "precio": "Precio",
-        "surface": "m²", "rooms": "Rec", "bathrooms": "Baños", "neighborhood": "Colonia", "url": "Link",
-    })
-    st.dataframe(
-        show, hide_index=True, height=520, width="stretch",
-        column_config={
-            "Precio": st.column_config.NumberColumn(format="$ %d"),
-            "Link": st.column_config.LinkColumn("Link", display_text="ver →"),
-        },
-    )
+    show = fdf[["name", "portal", "tipo", "operacion", "precio", "surface", "rooms", "colonia", "url"]].rename(
+        columns={"name": "Anuncio", "portal": "Portal", "tipo": "Tipo", "operacion": "Op.",
+                 "precio": "Precio", "surface": "m²", "rooms": "Rec", "colonia": "Colonia", "url": "Link"})
+    st.dataframe(show, hide_index=True, height=560, width="stretch",
+                 column_config={"Precio": st.column_config.NumberColumn(format="$ %d"),
+                                "Link": st.column_config.LinkColumn("Link", display_text="ver →")})

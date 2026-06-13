@@ -68,6 +68,53 @@ decisiones / notas · pendientes / siguiente paso.
 %  ENTRADAS (la más reciente arriba)
 % =====================================================================
 
+\section*{2026-06-13 — Los 5 portales corriendo + visor multi-portal}
+\addcontentsline{toc}{section}{2026-06-13 — 5 portales + visor multi-portal}
+
+\subsection*{Qué se hizo (sesión "completar todos los sitios", ventana 2 h)}
+\begin{itemize}
+  \item Se lanzaron en paralelo (segundo plano, reanudables) los 5 scrapers:
+        \textbf{Casas y Terrenos}, \textbf{Lamudi}, \textbf{Inmuebles24},
+        \textbf{Propiedades.com}, \textbf{Vivanuncios}.
+  \item \textbf{Propiedades.com} (nuevo): tras Cloudflare es Next.js →
+        \codigo{\_\_NEXT\_DATA\_\_.props.pageProps.results.properties} con
+        \textbf{coordenadas nativas} (\codigo{valid\_coords}), colonia, alcaldía,
+        precio, m², recámaras y \textbf{fecha} (\codigo{published}) → filtro de 3
+        meses real. 40k+ deptos en CDMX. (\codigo{src/ingesta/propiedades.py})
+  \item \textbf{Vivanuncios} (nuevo): mismo DOM ``posting'' de Navent que
+        Inmuebles24 → se reutilizó \codigo{parse\_cards}. URL con códigos
+        \codigo{v1c\{cat\}l\{loc\}p\{N\}} (df=1008, edomex=1014).
+        (\codigo{src/ingesta/vivanuncios.py})
+  \item \textbf{Visor multi-portal}: \codigo{app/streamlit\_app.py} ahora lee
+        TODOS los CSVs de \codigo{data/processed/}, los normaliza a un esquema
+        común y los pinta juntos en el mapa OSM (color por portal) + filtros por
+        portal/operación + botón de refresco.
+\end{itemize}
+
+\subsection*{Bugs corregidos en corrida real}
+\begin{itemize}
+  \item CyT: \codigo{lastUpdate} tz-aware vs naive → crash. Normalizado a naive.
+  \item Propiedades: el filtro de fecha usaba \codigo{days\_ago} (string ``1 año'')
+        → se cambió a \codigo{published} (datetime exacto).
+  \item Checkpoints viejos de Lamudi saltaban todo → limpiados.
+\end{itemize}
+
+\subsection*{Estado (avance parcial de la ventana)}
+\begin{itemize}
+  \item Con coordenadas nativas y ya en el mapa: CyT, Lamudi, Propiedades
+        ($\sim$7k+ geolocalizadas).
+  \item Inmuebles24 y Vivanuncios: sin coords en el listado → \textbf{pendiente
+        geocodificar por colonia} (\codigo{geocode.py}) cuando terminen, para que
+        aparezcan en el mapa.
+\end{itemize}
+
+\subsection*{Pendientes / siguiente paso}
+\begin{itemize}
+  \pend Al terminar: geocodificar Inmuebles24 y Vivanuncios
+        (\codigo{python -m src.ingesta.geocode --portal inmuebles24 / vivanuncios}).
+  \pend Deduplicar entre portales (mismo inmueble en varios) — Etapa 10 del catálogo.
+\end{itemize}
+
 \section*{2026-06-13 — Inmuebles24 vía CloakBrowser + geocoding por colonia}
 \addcontentsline{toc}{section}{2026-06-13 — Inmuebles24 (CloakBrowser) + geocode}
 

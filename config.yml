@@ -171,6 +171,28 @@ ingesta:
       venta: venta
       renta: renta
 
+  # ---- Vivanuncios (Nivel B — vía CloakBrowser) ----------------------
+  #  Mismo DOM "posting" de Navent que Inmuebles24 → se reutiliza su parser.
+  #  URL: /s-{slug}/{loc-slug}/v1c{cat}l{loc}p{N}   (30/pág).
+  #  Sin coords en la tarjeta → se geocodifica por colonia (geocode.py).
+  vivanuncios:
+    base_url: "https://www.vivanuncios.com.mx"
+    warmup_url: "https://www.vivanuncios.com.mx/s-departamentos-en-venta/distrito-federal/v1c1294l1008p1"
+    max_pages: 50
+    settle: 6.0
+    locaciones:               # loc_slug: loc_code
+      distrito-federal: 1008
+      estado-de-mexico: 1014
+    categorias:               # {slug, cat, tipo, operacion}
+      - { slug: "departamentos-en-venta",    cat: 1294, tipo: departamentos, operacion: venta }
+      - { slug: "casas-en-venta",            cat: 1293, tipo: casas,         operacion: venta }
+      - { slug: "venta-terrenos",            cat: 31,   tipo: terrenos,      operacion: venta }
+      - { slug: "venta-oficinas",            cat: 32,   tipo: oficinas,      operacion: venta }
+      - { slug: "venta-locales-comerciales", cat: 1112, tipo: locales,       operacion: venta }
+      - { slug: "departamentos-en-renta",    cat: 1300, tipo: departamentos, operacion: renta }
+      - { slug: "casas-en-renta",            cat: 1299, tipo: casas,         operacion: renta }
+      - { slug: "renta-locales-comerciales", cat: 1276, tipo: locales,       operacion: renta }
+
 
 # =====================================================================
 #  Google Drive — subida de fotos y respaldos
