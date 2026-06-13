@@ -68,6 +68,50 @@ decisiones / notas · pendientes / siguiente paso.
 %  ENTRADAS (la más reciente arriba)
 % =====================================================================
 
+\section*{2026-06-13 — AVM (M2 Valuación) + Oportunidades (M5) en Streamlit}
+\addcontentsline{toc}{section}{2026-06-13 — AVM + Oportunidades}
+
+\subsection*{Qué se hizo}
+\begin{itemize}
+  \item \codigo{src/valuacion/avm.py}: modelo de valuación automática que estima el
+        precio de venta por características (m², recámaras, baños) + ubicación
+        (municipio, colonia) + tipo. Target \codigo{log(precio)}.
+  \item Compara 3 modelos en \textbf{train / validation / test} (60/20/20):
+        \textbf{Gradient Boosting} (ML) + clásicos \textbf{Random Forest} y
+        \textbf{Ridge}. Métricas: MAE, RMSE, R², MAPE, \textbf{MdAPE}.
+  \item Valor estimado \textbf{out-of-fold} (cada inmueble valuado por un modelo que
+        no lo vio) → \codigo{subvaluacion\_pct = (estimado - precio)/estimado}.
+  \item Visor con \textbf{pestañas}: 🗺️ Mapa · 🤖 Modelo (métricas/performance,
+        scatter estimado-vs-real, importancia de variables) · 💎 Oportunidades.
+  \item Dependencia: \codigo{scikit-learn}.
+\end{itemize}
+
+\subsection*{Resultados (snapshot, 9{,}432 inmuebles venta)}
+\begin{itemize}
+  \item Gradient Boosting / Random Forest: \textbf{MdAPE $\sim$21\%}, R² $\sim$0.55.
+  \item Ridge (lineal): MdAPE 26\%, R² 0.06 — el clásico lineal queda muy por
+        debajo (real estate es no-lineal). Mejor: Random Forest.
+  \item v1 con margen de mejora (la meta del plan era MdAPE $\sim$11\%): faltan
+        coords finas, antigüedad, amenidades, modelar \$/m².
+\end{itemize}
+
+\subsection*{Oportunidades · Benito Juárez (M5)}
+\begin{itemize}
+  \item 20 casas/deptos pedidas; salen \textbf{19 creíbles} (<3 MDP, subvaluación
+        15–45\%).
+  \item \textbf{Hallazgo de honestidad}: la subvaluación $>$45\% en zona cara
+        resultó ser \textbf{error de dato} (p.ej. casa de 184 m² en Nápoles a
+        \$600k). Se acotó a la banda 15–45\% → las oportunidades quedan reales,
+        no listings con precio mal capturado. Esto ES el producto: decir cuándo
+        algo es ``demasiado bueno para ser verdad''.
+\end{itemize}
+
+\subsection*{Pendiente / siguiente}
+\begin{itemize}
+  \pend Mejorar el AVM: \$/m² como target, coords, antigüedad, amenidades; bajar MdAPE.
+  \pend Geocodificar Inmuebles24 al terminar su scrape.
+\end{itemize}
+
 \section*{2026-06-13 — Deduplicación (Etapa 10): un inmueble, el más barato}
 \addcontentsline{toc}{section}{2026-06-13 — Deduplicación}
 
