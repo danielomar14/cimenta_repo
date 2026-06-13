@@ -43,6 +43,16 @@ import yaml
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
+try:
+    from tqdm import tqdm
+except ImportError:  # barra opcional; si no está tqdm, shim transparente
+    class tqdm:  # type: ignore
+        def __init__(self, it, **k): self.it = it
+        def __iter__(self): return iter(self.it)
+        def set_description(self, *a, **k): pass
+        def set_postfix(self, *a, **k): pass
+        def close(self): pass
+
 # ── Rutas del proyecto ─────────────────────────────────────────────────────────
 ROOT = Path(__file__).resolve().parents[2]
 CONFIG_PATH = ROOT / "config.yml"
@@ -290,10 +300,13 @@ def run(args) -> None:
         writer.writeheader()
 
     total_new = 0
+    pbar = tqdm(combos, unit="combo", desc="Casas y Terrenos", dynamic_ncols=True)
     try:
-        for i, (estado, municipio, tipo, operacion) in enumerate(combos, 1):
+        for (estado, municipio, tipo, operacion) in pbar:
             key = (estado, municipio, tipo, operacion)
+            pbar.set_description(f"{municipio[:14]}/{tipo[:6]}/{operacion[:5]}")
             if key in done and not args.force:
+                pbar.set_postfix(total=total_new, last="skip")
                 continue
             n_combo = 0
             for p in client.scrape_combo(estado, municipio, tipo, operacion, cutoff):
@@ -310,10 +323,10 @@ def run(args) -> None:
             ck["done_combos"] = [list(k) for k in sorted(done)]
             ck["counts"][f"{estado}/{municipio}/{tipo}/{operacion}"] = n_combo
             save_checkpoint(ck)
-            logger.info("[%d/%d] %s/%s/%s/%s → %d nuevos (acum %d)",
-                        i, len(combos), estado, municipio, tipo, operacion, n_combo, total_new)
+            pbar.set_postfix(combo=n_combo, total=total_new)
             client._sleep()
     finally:
+        pbar.close()
         raw_f.close(); csv_f.close()
 
     logger.info("=" * 60)

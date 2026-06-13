@@ -9,6 +9,7 @@
 # ---- M1 Ingesta ----
 requests==2.34.2
 PyYAML==6.0.3
+tqdm==4.68.2
 
 # ---- M1 · Fotos → Google Drive ----
 google-api-python-client==2.197.0
