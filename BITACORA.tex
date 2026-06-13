@@ -68,6 +68,31 @@ decisiones / notas · pendientes / siguiente paso.
 %  ENTRADAS (la más reciente arriba)
 % =====================================================================
 
+\section*{2026-06-13 — Visor Streamlit + mapa OpenStreetMap}
+\addcontentsline{toc}{section}{2026-06-13 — Visor Streamlit + mapa}
+
+\subsection*{Qué se hizo}
+\begin{itemize}
+  \item Dashboard minimalista \codigo{app/streamlit\_app.py} para explorar el CSV
+        scrapeado (855 propiedades de Benito Juárez).
+  \item \textbf{Mapa OpenStreetMap} con \codigo{folium} + \codigo{streamlit-folium}:
+        marcadores en clúster, color por operación (venta/renta), popups con
+        precio, m², recámaras, baños, colonia y link al anuncio. Base
+        seleccionable (CartoDB Positron minimalista / OpenStreetMap).
+  \item Filtros (operación, tipo, municipio, recámaras), KPIs (conteo, venta/renta,
+        precio mediano de venta, m² mediano) y tabla de detalle con links.
+  \item Estilo con la paleta CIMENTA (Inter + Space Grotesk), menú/footer ocultos.
+  \item Dependencias: \codigo{streamlit}, \codigo{pandas}, \codigo{folium},
+        \codigo{streamlit-folium}.
+  \item Probado con \codigo{AppTest} (corre sin excepción; se corrigió un bug de
+        \codigo{NaN} en popups). Corre en \codigo{localhost:8501}.
+\end{itemize}
+
+\subsection*{Cómo correrlo}
+\begin{itemize}
+  \item \codigo{conda activate cimenta\_env \&\& streamlit run app/streamlit\_app.py}
+\end{itemize}
+
 \section*{2026-06-13 — Fotos de propiedades → Google Drive + borrado local (M1)}
 \addcontentsline{toc}{section}{2026-06-13 — Fotos → Google Drive}
 
