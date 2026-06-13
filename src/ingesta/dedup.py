@@ -126,7 +126,7 @@ def run(args):
 
     kept = g.first().reset_index()
     kept["n_anuncios"] = g.size().values
-    kept["portales"] = g["portal"].apply(lambda s: ",".join(sorted(set(s)))).values
+    kept["portales"] = g["portal"].apply(lambda s: ",".join(sorted({str(x) for x in s if pd.notna(x)}))).values
     kept["precio_min"] = g["precio"].min().values
     kept["precio_max"] = g["precio"].max().values
     kept["ahorro"] = (kept["precio_max"] - kept["precio_min"])  # cuánto se evita pagando el más barato
