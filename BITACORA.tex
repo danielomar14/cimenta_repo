@@ -68,6 +68,56 @@ decisiones / notas · pendientes / siguiente paso.
 %  ENTRADAS (la más reciente arriba)
 % =====================================================================
 
+\section*{2026-06-13 — Inmuebles24 vía CloakBrowser + geocoding por colonia}
+\addcontentsline{toc}{section}{2026-06-13 — Inmuebles24 (CloakBrowser) + geocode}
+
+\subsection*{Decisión}
+Se agotaron los portales fáciles con coordenadas (CyT + Lamudi). Pincali no trae
+coords (es EasyBroker por debajo); iCasas las tiene pero su HTML es frágil. Se
+decidió ir por los 3 grandes (mayor inventario) con la técnica \textbf{CloakBrowser}
+del repo FotMob — Nivel B, decisión consciente del dueño pese al ``no evadir'' del
+catálogo. Se empezó por \textbf{Inmuebles24}.
+
+\subsection*{Qué se hizo}
+\begin{itemize}
+  \item \codigo{src/ingesta/browser.py}: sesión CloakBrowser (warmup resuelve
+        Cloudflare una vez, reutiliza la sesión). Confirmado: pasa el Cloudflare
+        de Inmuebles24 (título real ``4,849 Departamentos…'').
+  \item \codigo{src/ingesta/inmuebles24.py}: scraper que parsea las tarjetas
+        \codigo{posting} con \textbf{BeautifulSoup} (id, precio, dirección,
+        colonia/alcaldía, m²/rec/baños/estac, URL, tipo PROPERTY/DEVELOPMENT);
+        pagina con \codigo{-pagina-N.html}; dedup por id; JSONL + CSV; reanudable.
+  \item \codigo{src/ingesta/geocode.py}: \textbf{geocodificación por colonia} vía
+        OSM/Nominatim (1 req/s, User-Agent identificable, viewbox ZMVM, caché en
+        \codigo{data/geocode\_cache.json}). Reutilizable para cualquier portal sin
+        coords.
+  \item Dependencias: \codigo{cloakbrowser}, \codigo{beautifulsoup4}.
+\end{itemize}
+
+\subsection*{Prueba (pipeline completo)}
+\begin{itemize}
+  \item Scrape BJ deptos venta (2 pág): 51 postings, todos con precio/colonia/m².
+        Paginación OK.
+  \item Geocode: 27 colonias únicas → \textbf{50/51 filas con coordenadas} a nivel
+        colonia, cacheadas.
+\end{itemize}
+
+\subsection*{Caveats}
+\begin{itemize}
+  \item Inmuebles24 \textbf{no expone coordenadas} → posición a nivel colonia
+        (aproximada), no exacta.
+  \item Tarjetas \codigo{DEVELOPMENT} (preventa) traen precios/m² en rango; se
+        marcan con \codigo{card\_type} para poder filtrarlas.
+  \item El scrape es por navegador → lento (horas para CDMX+ZMVM completo). Reanudable.
+\end{itemize}
+
+\subsection*{Pendientes / siguiente paso}
+\begin{itemize}
+  \pend Correr Inmuebles24 completo + geocode (comandos abajo).
+  \pend Replicar a Propiedades.com y Vivanuncios (mismo patrón CloakBrowser).
+  \pend Unificar CSVs de portales para que el visor muestre todos juntos.
+\end{itemize}
+
 \section*{2026-06-13 — Corrida completa CyT (tqdm) + scraper Lamudi}
 \addcontentsline{toc}{section}{2026-06-13 — Corrida completa + Lamudi}
 

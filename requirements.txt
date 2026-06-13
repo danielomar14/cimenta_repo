@@ -16,6 +16,10 @@ google-api-python-client==2.197.0
 google-auth-oauthlib==1.4.0
 google-auth-httplib2==0.4.0
 
+# ---- M1 · Portales tras Cloudflare (Nivel B) + geocoding ----
+cloakbrowser==0.3.31      # Chromium stealth; resuelve Cloudflare Turnstile
+beautifulsoup4==4.15.0    # parseo del DOM (tarjetas Inmuebles24)
+
 # ---- App / visor (Streamlit + mapa OSM) ----
 streamlit==1.58.0
 pandas==3.0.3

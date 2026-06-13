@@ -103,6 +103,49 @@ ingesta:
     max_pages: 100             # 30/pág → hasta 3000 por estado/operación
     delay_seg: [1.5, 3.5]
 
+  # ---- Inmuebles24 (Nivel B — vía CloakBrowser) ----------------------
+  #  Tras Cloudflare. Listados en el DOM (React, tarjetas "posting").
+  #  URL: /{tipo}-en-{operacion}-en-{municipio}[-pagina-N].html  (30/pág).
+  #  OJO: NO expone coordenadas → se geocodifica por colonia (src/ingesta/geocode.py).
+  inmuebles24:
+    base_url: "https://www.inmuebles24.com"
+    warmup_url: "https://www.inmuebles24.com/"
+    max_pages: 40              # I24 limita ~1000-1200 resultados visibles
+    settle: 6.0               # segundos tras el warmup de Cloudflare
+    tipos:                    # slug_url: etiqueta
+      departamentos: departamentos
+      casas: casas
+      terrenos: terrenos
+      oficinas: oficinas
+      locales-comerciales: locales
+      bodegas-comerciales: bodegas
+    operaciones:              # slug_url: etiqueta
+      venta: venta
+      renta: renta
+    municipios:               # CDMX (16) + ZMVM principales
+      - benito-juarez
+      - alvaro-obregon
+      - azcapotzalco
+      - coyoacan
+      - cuajimalpa
+      - cuauhtemoc
+      - gustavo-a-madero
+      - iztacalco
+      - iztapalapa
+      - magdalena-contreras
+      - miguel-hidalgo
+      - milpa-alta
+      - tlahuac
+      - tlalpan
+      - venustiano-carranza
+      - xochimilco
+      - naucalpan
+      - tlalnepantla
+      - huixquilucan
+      - atizapan-de-zaragoza
+      - cuautitlan-izcalli
+      - ecatepec
+
 
 # =====================================================================
 #  Google Drive — subida de fotos y respaldos
