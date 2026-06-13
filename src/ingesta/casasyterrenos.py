@@ -127,9 +127,11 @@ def parse_last_update(value) -> datetime | None:
     if not value:
         return None
     try:
-        return datetime.fromisoformat(str(value).replace("Z", ""))
+        dt = datetime.fromisoformat(str(value).replace("Z", ""))
     except ValueError:
         return None
+    # normaliza a naive (algunos anuncios traen tz, otros no) para poder comparar
+    return dt.replace(tzinfo=None) if dt.tzinfo else dt
 
 
 # ── Cliente ──────────────────────────────────────────────────────────────────────
