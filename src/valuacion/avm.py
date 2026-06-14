@@ -38,7 +38,7 @@ ROOT = Path(__file__).resolve().parents[2]
 PROC = ROOT / "data" / "processed"
 SRC = PROC / "_unificado_dedup.csv"
 
-NUM = ["surface", "rooms", "bathrooms"]
+NUM = ["surface", "rooms", "bathrooms", "cat_valor_suelo", "antiguedad", "cat_intensidad"]
 CAT = ["municipio", "colonia", "tipo_norm"]
 SEED = 42
 
@@ -68,6 +68,14 @@ def load() -> pd.DataFrame:
     else:
         from src.ingesta.dedup import load_unified
         df = load_unified()
+    # enriquecer con features catastrales (join espacial precomputado)
+    cf = PROC / "catastro_features.csv"
+    if cf.exists() and "id" in df.columns:
+        df = df.merge(pd.read_csv(cf), on="id", how="left")
+    for col in ["cat_valor_suelo", "cat_anio", "cat_intensidad"]:
+        df[col] = pd.to_numeric(df.get(col), errors="coerce")
+    df["antiguedad"] = 2026 - df["cat_anio"]
+
     df = df[df["operacion"] == "venta"].copy()
     for c in ["precio", "surface", "rooms", "bathrooms"]:
         df[c] = pd.to_numeric(df.get(c), errors="coerce")

@@ -68,6 +68,22 @@ decisiones / notas · pendientes / siguiente paso.
 %  ENTRADAS (la más reciente arriba)
 % =====================================================================
 
+\section*{2026-06-13 — AVM enriquecido con catastro: MdAPE 21\% → 12\%}
+\addcontentsline{toc}{section}{2026-06-13 — AVM + catastro (MdAPE 12\%)}
+
+\begin{itemize}
+  \item \codigo{src/valuacion/catastro\_features.py}: \textbf{join espacial}
+        (BallTree haversine) de cada propiedad a los predios catastrales más
+        cercanos (2.37 M predios). Distancia mediana al predio: \textbf{21 m} →
+        features casi exactas por propiedad: \codigo{cat\_valor\_suelo} (valor
+        oficial \$/m²), \codigo{antiguedad} (2026 − año construcción),
+        \codigo{cat\_intensidad}.
+  \item Se añadieron al AVM (\codigo{avm.py}). Resultado:
+        \textbf{MdAPE test 21.4\% → 12.3\%} (Random Forest), R² 0.51 → \textbf{0.78}.
+        El valor oficial del suelo y la antigüedad fueron decisivos — cerca de la
+        meta del Plan Maestro (MdAPE $\sim$11\%).
+\end{itemize}
+
 \section*{2026-06-13 — Catastro (obra nueva + valor de suelo) al índice M3}
 \addcontentsline{toc}{section}{2026-06-13 — Catastro / obra nueva}
 
