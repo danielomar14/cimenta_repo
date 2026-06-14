@@ -46,7 +46,9 @@ def _pct_rank(s: pd.Series) -> pd.Series:
 def main():
     crimen = pd.read_csv(PROC / "crimen_por_colonia.csv")
     com = pd.read_csv(PROC / "comercios_por_colonia.csv")
-    for d in (crimen, com):
+    cat_path = PROC / "catastro_por_colonia.csv"
+    cat = pd.read_csv(cat_path) if cat_path.exists() else None
+    for d in [crimen, com] + ([cat] if cat is not None else []):
         d["base"] = d["colonia"].map(colonia_base)
 
     # re-agregar a (alcaldia, colonia base)
@@ -63,14 +65,22 @@ def main():
     co["comercios_nuevos_pct"] = (co["comercios_nuevos"] / co["comercios_total"] * 100).round(1)
 
     df = cr.merge(co, on=["alcaldia", "base"], how="outer")
+    if cat is not None:
+        ca = cat.groupby(["alcaldia", "base"]).agg(
+            valor_suelo_m2=("valor_suelo_m2", "median"),
+            pct_construccion_reciente=("pct_construccion_reciente", "mean")).reset_index()
+        df = df.merge(ca, on=["alcaldia", "base"], how="outer")
 
     # señales (mayor = mejor para plusvalía)
     seguridad = _pct_rank(-df["crimen_tendencia_pct"])         # crimen cayendo → alto
     crecimiento = _pct_rank(df["comercios_nuevos_pct"])         # más comercio nuevo → alto
     vitalidad = _pct_rank(df["comercios_consumo"])             # más comercio de consumo → alto
-    df["indice_momentum"] = (
-        100 * (W["seguridad"] * seguridad + W["crecimiento"] * crecimiento + W["vitalidad"] * vitalidad)
-    ).round(1)
+    if "pct_construccion_reciente" in df.columns:
+        desarrollo = _pct_rank(df["pct_construccion_reciente"])  # obra nueva (catastro) → alto
+        score = (0.30 * seguridad + 0.25 * crecimiento + 0.20 * vitalidad + 0.25 * desarrollo)
+    else:
+        score = (W["seguridad"] * seguridad + W["crecimiento"] * crecimiento + W["vitalidad"] * vitalidad)
+    df["indice_momentum"] = (100 * score).round(1)
     df = df.rename(columns={"base": "colonia"})
 
     # precio mediano por m² de la colonia (contexto, desde el set deduplicado)
@@ -88,9 +98,10 @@ def main():
         df = df.merge(pm, on=["alcaldia", "colonia"], how="left")
 
     cols = ["alcaldia", "colonia", "indice_momentum", "crimen_tendencia_pct",
-            "comercios_total", "comercios_consumo", "comercios_nuevos_pct"]
-    if "precio_m2_mediano" in df.columns:
-        cols.append("precio_m2_mediano")
+            "comercios_nuevos_pct"]
+    for c in ["pct_construccion_reciente", "valor_suelo_m2", "precio_m2_mediano"]:
+        if c in df.columns:
+            cols.append(c)
     out = df[cols].sort_values("indice_momentum", ascending=False)
     out.to_csv(PROC / "indice_plusvalia_colonia.csv", index=False)
 

@@ -68,6 +68,25 @@ decisiones / notas · pendientes / siguiente paso.
 %  ENTRADAS (la más reciente arriba)
 % =====================================================================
 
+\section*{2026-06-13 — Catastro (obra nueva + valor de suelo) al índice M3}
+\addcontentsline{toc}{section}{2026-06-13 — Catastro / obra nueva}
+
+\begin{itemize}
+  \item Se buscó descargar \textbf{permisos de construcción} CDMX, pero NO son
+        descarga abierta (viven en la Ventanilla Única de SEDUVI, con login).
+  \item Sustituto público y mejor: \textbf{Información Catastral CDMX} (un CSV por
+        alcaldía, datos abiertos). \codigo{src/plusvalia/catastro.py} descarga las
+        16 alcaldías ($\sim$330 MB) y agrega por colonia: \textbf{valor oficial del
+        suelo \$/m²}, \textbf{año de construcción} y \textbf{\% de construcción
+        reciente} (desde 2010 = señal de OBRA NUEVA), e intensidad constructiva.
+  \item Se integró al índice (\codigo{indice.py}): 4 señales →
+        seguridad 30\% + crecimiento comercio 25\% + vitalidad 20\% +
+        \textbf{obra nueva 25\%}. La pestaña Plusvalía muestra obra nueva \% y
+        valor de suelo. 3{,}400 colonias.
+  \item BJ top momentum: San José Insurgentes, Josefa Ortiz de Domínguez, Vértiz
+        Narvarte.
+\end{itemize}
+
 \section*{2026-06-13 — Universo de análisis: solo venta ≤ 20 MDP}
 \addcontentsline{toc}{section}{2026-06-13 — Filtro venta ≤ 20 MDP}
 

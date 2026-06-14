@@ -285,10 +285,11 @@ with tab_plus:
             st.markdown("##### Detalle")
             disp = v.rename(columns={"colonia": "Colonia", "alcaldia": "Alcaldía",
                                      "indice_momentum": "Momentum", "crimen_tendencia_pct": "Crimen Δ%",
-                                     "comercios_total": "Comercios", "comercios_nuevos_pct": "Com. nuevos %",
-                                     "precio_m2_mediano": "$/m²"})
-            cols = [c for c in ["Colonia", "Alcaldía", "Momentum", "Crimen Δ%", "Comercios", "Com. nuevos %", "$/m²"]
-                    if c in disp.columns]
+                                     "comercios_nuevos_pct": "Com. nuevos %",
+                                     "pct_construccion_reciente": "Obra nueva %",
+                                     "valor_suelo_m2": "Suelo $/m²", "precio_m2_mediano": "$/m²"})
+            cols = [c for c in ["Colonia", "Alcaldía", "Momentum", "Crimen Δ%", "Com. nuevos %",
+                                "Obra nueva %", "$/m²"] if c in disp.columns]
             if f_alc != "(todas)":
                 cols = [c for c in cols if c != "Alcaldía"]
             st.dataframe(disp[cols], hide_index=True, height=520, width="stretch",
