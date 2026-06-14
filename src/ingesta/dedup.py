@@ -100,6 +100,14 @@ def run(args):
     if df.empty:
         print("No hay CSVs en data/processed/. Corre primero los scrapers.")
         return
+    # ── Filtro de universo: solo venta y precio ≤ tope (def 20 MDP) ──
+    df["precio"] = pd.to_numeric(df.get("precio"), errors="coerce")
+    n_total = len(df)
+    if not args.incluir_renta:
+        df = df[df["operacion"] == "venta"]
+    df = df[df["precio"].between(1, args.precio_max)].reset_index(drop=True)
+    print(f"Universo: {'venta+renta' if args.incluir_renta else 'solo venta'}, "
+          f"precio ≤ ${args.precio_max/1e6:.0f} MDP  ({n_total:,} → {len(df):,} anuncios)")
     n_raw = len(df)
 
     # filas sin ubicación útil no se pueden dedupear con confianza → quedan como únicas
@@ -161,6 +169,10 @@ def main():
                     help="global = dentro y entre portales; intra = solo dentro de cada portal")
     ap.add_argument("--tol", type=float, default=0.30,
                     help="tolerancia de precio para considerar dos anuncios el mismo inmueble (def 0.30 = ±30%%)")
+    ap.add_argument("--precio-max", type=float, default=20_000_000,
+                    help="precio máximo del universo (def 20 MDP)")
+    ap.add_argument("--incluir-renta", action="store_true",
+                    help="incluye propiedades en renta (def: solo venta)")
     args = ap.parse_args()
     run(args)
 

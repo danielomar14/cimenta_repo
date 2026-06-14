@@ -87,9 +87,19 @@ def _normalize(df: pd.DataFrame, portal: str) -> pd.DataFrame:
 
 @st.cache_data(ttl=120, show_spinner=False)
 def load_map() -> pd.DataFrame:
+    # Universo canónico: set deduplicado (solo venta ≤ 20 MDP). Fallback: CSVs crudos.
+    dd = PROC / "_unificado_dedup.csv"
+    if dd.exists():
+        try:
+            d = pd.read_csv(dd, on_bad_lines="skip", low_memory=False)
+            df = _normalize(d, "dedup")
+            return df[df["lat"].between(18.9, 20.1) & df["lng"].between(-99.6, -98.6)]
+        except Exception:
+            pass
+    skip = ("_", "avm", "oportunidades", "crimen", "comercios", "indice")
     frames = []
     for csv in sorted(PROC.glob("*.csv")):
-        if csv.stem.startswith("_") or csv.stem.startswith("avm") or csv.stem.startswith("oportunidades"):
+        if csv.stem.startswith(skip):
             continue
         try:
             d = pd.read_csv(csv, on_bad_lines="skip", low_memory=False)

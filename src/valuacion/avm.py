@@ -73,7 +73,7 @@ def load() -> pd.DataFrame:
         df[c] = pd.to_numeric(df.get(c), errors="coerce")
     df["tipo_norm"] = df["tipo"].map(norm_tipo)
     # saneamiento: precios y superficies razonables, $/m² creíble para CDMX
-    df = df[df["precio"].between(300_000, 150_000_000)]
+    df = df[df["precio"].between(300_000, 20_000_000)]  # universo: venta ≤ 20 MDP
     df = df[df["surface"].between(20, 2000)]
     df = df[df["colonia"].notna() & df["municipio"].notna()]
     ppm = df["precio"] / df["surface"]
@@ -110,7 +110,7 @@ def build_pipe(name: str, model) -> Pipeline:
 
 def score(y_true, y_pred) -> dict:
     """Métricas en escala de PESOS (y viene en log1p)."""
-    yt, yp = np.expm1(y_true), np.clip(np.expm1(y_pred), 1e5, 2e8)  # acota a rango sensato
+    yt, yp = np.expm1(y_true), np.clip(np.expm1(y_pred), 1e5, 3e7)  # acota a rango sensato
     ape = np.abs((yp - yt) / yt)
     return {
         "MAE": float(mean_absolute_error(yt, yp)),
@@ -156,7 +156,7 @@ def main():
     # ── Valor estimado out-of-fold (cada inmueble valuado por un modelo que NO lo vio) ──
     best_pipe = build_pipe(best, models()[best])
     oof = np.expm1(cross_val_predict(best_pipe, X, y, cv=KFold(5, shuffle=True, random_state=SEED)))
-    df["valor_estimado"] = np.clip(oof, 1e5, 2e8).round(0)
+    df["valor_estimado"] = np.clip(oof, 1e5, 3e7).round(0)
     df["subvaluacion_pct"] = ((df["valor_estimado"] - df["precio"]) / df["valor_estimado"] * 100).round(1)
 
     pred_cols = ["portal", "id", "tipo_norm", "operacion", "municipio", "colonia",

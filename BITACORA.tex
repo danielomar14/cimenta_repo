@@ -68,6 +68,22 @@ decisiones / notas · pendientes / siguiente paso.
 %  ENTRADAS (la más reciente arriba)
 % =====================================================================
 
+\section*{2026-06-13 — Universo de análisis: solo venta ≤ 20 MDP}
+\addcontentsline{toc}{section}{2026-06-13 — Filtro venta ≤ 20 MDP}
+
+\begin{itemize}
+  \item Se definió el \textbf{universo canónico}: solo \textbf{venta} y precio
+        \textbf{≤ 20 MDP} (se excluyen rentas y propiedades de lujo, que metían ruido).
+  \item \codigo{dedup.py}: filtro con \codigo{--precio-max} (def 20 MDP) y
+        \codigo{--incluir-renta}. Resultado: 45{,}899 → \textbf{23{,}497} anuncios
+        venta ≤20 MDP → \textbf{19{,}548 inmuebles únicos}.
+  \item \codigo{avm.py}: tope a 20 MDP; clip de predicciones acotado al universo
+        (corrige el R² del modelo lineal).
+  \item El visor ahora lee el \textbf{set deduplicado} (mapa sin duplicados, solo
+        venta ≤20 MDP). Todo (AVM, índice, oportunidades) corre sobre esta base.
+  \item AVM (Gradient Boosting): MdAPE test \textbf{20.7\%}, R² 0.49.
+\end{itemize}
+
 \section*{2026-06-13 — M3 Plusvalía: índice de momentum por colonia}
 \addcontentsline{toc}{section}{2026-06-13 — M3 Plusvalía (crimen + comercios)}
 
