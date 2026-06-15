@@ -4,8 +4,9 @@ CIMENTA · App (multi-portal)
 Pestañas:
   🗺️ Mapa          — todas las propiedades geolocalizadas (OpenStreetMap)
   🤖 Modelo (AVM)  — valuación: train/validation/test, métricas y performance
-  💎 Oportunidades — casas/deptos de Benito Juárez < 3 MDP, subvaluadas
+  💎 Oportunidades — buscador interactivo de subvaluación (filtros anti-remate)
   📈 Plusvalía      — índice de momentum por colonia (crimen FGJ + comercios DENUE)
+  🏢 Publicadores   — reputación por publicador (% remate, subvaluación) — detecta sospechosos
 
 Correr:
     conda activate cimenta_env
@@ -143,14 +144,41 @@ def load_oportunidades():
     return df
 
 
+@st.cache_data(ttl=120, show_spinner=False)
+def load_publicadores():
+    sp = PROC / "senales_anuncio.csv"
+    if not sp.exists():
+        return None
+    sen = pd.read_csv(sp, dtype={"id": str})
+    sen = sen[sen["publicador"].notna() & (sen["publicador"].astype(str).str.strip() != "")].copy()
+    if not len(sen):
+        return None
+    sen["remate"] = sen["es_remate"].astype(str).str.lower().isin(["true", "1"]).astype(int)
+    # subvaluación desde las predicciones del AVM
+    pp = PROC / "avm_predicciones.csv"
+    if pp.exists():
+        pr = pd.read_csv(pp, dtype={"id": str})[["portal", "id", "subvaluacion_pct", "municipio"]]
+        sen = sen.merge(pr, on=["portal", "id"], how="left")
+    g = sen.groupby("publicador")
+    out = pd.DataFrame({
+        "anuncios": g.size(),
+        "portal": g["portal"].agg(lambda s: s.mode().iat[0] if len(s.mode()) else ""),
+        "pct_remate": (g["remate"].mean() * 100).round(0),
+        "subval_med": g["subvaluacion_pct"].median().round(0) if "subvaluacion_pct" in sen else 0,
+        "alcaldias": g["municipio"].nunique() if "municipio" in sen else 0,
+    }).reset_index()
+    out["sospechoso"] = (out["pct_remate"] >= 30) | (out["subval_med"] >= 35)
+    return out.sort_values("anuncios", ascending=False)
+
+
 st.markdown('<div class="cim-title">CIMENTA</div>', unsafe_allow_html=True)
 st.markdown('<div class="cim-sub">Inteligencia inmobiliaria cuantitativa · CDMX y ZMVM</div>', unsafe_allow_html=True)
 with st.sidebar:
     if st.button("🔄 Refrescar datos"):
         st.cache_data.clear(); st.rerun()
 
-tab_mapa, tab_modelo, tab_opp, tab_plus = st.tabs(
-    ["🗺️ Mapa", "🤖 Modelo (AVM)", "💎 Oportunidades", "📈 Plusvalía"])
+tab_mapa, tab_modelo, tab_opp, tab_plus, tab_pub = st.tabs(
+    ["🗺️ Mapa", "🤖 Modelo (AVM)", "💎 Oportunidades", "📈 Plusvalía", "🏢 Publicadores"])
 
 # ══════════════════════════════ MAPA ══════════════════════════════
 with tab_mapa:
@@ -342,3 +370,35 @@ with tab_plus:
                                         "Crimen Δ%": st.column_config.NumberColumn(format="%.0f%%"),
                                         "Com. nuevos %": st.column_config.NumberColumn(format="%.1f%%")})
         st.caption("Fuentes: Carpetas de investigación FGJ-CDMX · DENUE (INEGI) · precios CIMENTA.")
+
+# ══════════════════════════════ PUBLICADORES ══════════════════════════════
+with tab_pub:
+    pub = load_publicadores()
+    st.markdown("### Reputación de publicadores")
+    st.caption("Quién publica cada anuncio y su perfil. Útil para detectar al **publicador "
+               "que inunda con remates**: muchos anuncios + alto **% de remates** o alta "
+               "**subvaluación** = sospechoso (marcado 🚩).")
+    if pub is None or not len(pub):
+        st.info("Aún no hay señales de publicador. Corre:  `python -m src.ingesta.senales`  "
+                "(requiere portales con publicador: CyT, Inmuebles24, Vivanuncios).")
+    else:
+        c1, c2, c3 = st.columns(3)
+        min_anuncios = c1.slider("Mín. anuncios", 1, 50, 5)
+        solo_sosp = c2.checkbox("Solo sospechosos 🚩", False)
+        v = pub[pub["anuncios"] >= min_anuncios].copy()
+        if solo_sosp:
+            v = v[v["sospechoso"]]
+        c3.metric("Publicadores", f"{len(v):,}")
+
+        v["🚩"] = v["sospechoso"].map({True: "🚩", False: ""})
+        disp = v.rename(columns={"publicador": "Publicador", "anuncios": "Anuncios",
+                                 "portal": "Portal", "pct_remate": "% Remate",
+                                 "subval_med": "Subval. mediana %", "alcaldias": "Alcaldías"})
+        cols = [c for c in ["🚩", "Publicador", "Portal", "Anuncios", "% Remate",
+                            "Subval. mediana %", "Alcaldías"] if c in disp.columns]
+        st.dataframe(disp[cols], hide_index=True, width="stretch", height=540,
+                     column_config={"% Remate": st.column_config.NumberColumn(format="%.0f%%"),
+                                    "Subval. mediana %": st.column_config.NumberColumn(format="%.0f%%"),
+                                    "Anuncios": st.column_config.NumberColumn(format="%d")})
+        st.caption("🚩 = ≥30% de sus anuncios son remates, o subvaluación mediana ≥35% "
+                   "(precios muy por debajo del valor → revisar antes de confiar).")
