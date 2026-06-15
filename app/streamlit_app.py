@@ -126,6 +126,23 @@ def load_plusvalia():
     return pd.read_csv(p) if p.exists() else None
 
 
+@st.cache_data(ttl=120, show_spinner=False)
+def load_oportunidades():
+    p = PROC / "avm_predicciones.csv"
+    if not p.exists():
+        return None
+    df = pd.read_csv(p)
+    df["id"] = df["id"].astype(str)
+    sp = PROC / "senales_anuncio.csv"
+    if sp.exists():
+        sen = pd.read_csv(sp, dtype={"id": str})[["portal", "id", "publicador", "es_remate", "fecha_pub"]].drop_duplicates(["portal", "id"])
+        df = df.merge(sen, on=["portal", "id"], how="left")
+    for c in ["publicador", "es_remate", "fecha_pub"]:
+        if c not in df.columns:
+            df[c] = pd.NA
+    return df
+
+
 st.markdown('<div class="cim-title">CIMENTA</div>', unsafe_allow_html=True)
 st.markdown('<div class="cim-sub">Inteligencia inmobiliaria cuantitativa · CDMX y ZMVM</div>', unsafe_allow_html=True)
 with st.sidebar:
@@ -230,31 +247,54 @@ with tab_modelo:
 
 # ══════════════════════════════ OPORTUNIDADES ══════════════════════════════
 with tab_opp:
-    _, _, _, opp = load_avm()
-    st.markdown("### Oportunidades · Benito Juárez")
-    st.caption("Casas y departamentos en **Benito Juárez** por **menos de $3 MDP**, "
-               "**por debajo del valor estimado** por el AVM (subvaluación 15–45%). "
-               "Se **excluyen remates/subastas** y se limita a **máx 3 por publicador** "
-               "(evita inundación de una sola empresa).")
-    if opp is None or not len(opp):
-        st.info("Aún no hay oportunidades calculadas. Corre:  `python -m src.valuacion.avm`")
+    df = load_oportunidades()
+    st.markdown("### Buscador de oportunidades")
+    st.caption("Propiedades **por debajo de su valor estimado** (AVM). Elige zona/precio/tipo; "
+               "el sistema **excluye remates/subastas** y **diversifica por publicador** "
+               "(evita la inundación de una sola empresa). Banda 15–45% = oportunidad creíble "
+               "(arriba suele ser error de dato).")
+    if df is None or not len(df):
+        st.info("Aún no hay valuaciones. Corre:  `python -m src.valuacion.avm`")
     else:
-        o = opp.copy()
-        a, b, c = st.columns(3)
-        a.metric("Oportunidades", f"{len(o)}")
-        b.metric("Subvaluación mediana", f"{o['subvaluacion_pct'].median():.0f}%")
-        b_savings = (o["valor_estimado"] - o["precio"]).median()
-        c.metric("Descuento mediano vs. valor", _money(b_savings))
-        disp = o.rename(columns={"tipo_norm": "Tipo", "colonia": "Colonia", "precio": "Precio",
-                                 "valor_estimado": "Valor estimado", "subvaluacion_pct": "Subvaluación %",
-                                 "surface": "m²", "rooms": "Rec", "bathrooms": "Baños", "url": "Link",
-                                 "portal": "Portal", "publicador": "Publicador"})
-        cols = [c for c in ["Tipo", "Colonia", "Precio", "Valor estimado", "Subvaluación %", "m²", "Rec",
-                            "Publicador", "Portal", "Link"] if c in disp.columns]
-        st.dataframe(disp[cols], hide_index=True, width="stretch", height=560,
+        c1, c2, c3, c4 = st.columns(4)
+        alc = ["(todas)"] + sorted(df["municipio"].dropna().unique())
+        f_alc = c1.selectbox("Alcaldía", alc, index=alc.index("Benito Juárez") if "Benito Juárez" in alc else 0)
+        tipos = sorted(df["tipo_norm"].dropna().unique())
+        defa = [t for t in ["casa", "departamento"] if t in tipos] or tipos
+        f_tipo = c2.multiselect("Tipo", tipos, default=defa)
+        precio_max = c3.slider("Precio máx (MDP)", 0.5, 20.0, 3.0, 0.5)
+        subval = c4.slider("Subvaluación %", 0, 60, (15, 45))
+        cA, cB = st.columns([1, 2])
+        excl = cA.checkbox("Excluir remates", True)
+        max_pub = cB.slider("Máx por publicador", 1, 10, 3)
+
+        v = df[df["tipo_norm"].isin(f_tipo) & (df["precio"] < precio_max * 1e6)
+               & df["subvaluacion_pct"].between(subval[0], subval[1])].copy()
+        if f_alc != "(todas)":
+            v = v[v["municipio"] == f_alc]
+        if excl:
+            v = v[~v["es_remate"].astype(str).str.lower().isin(["true", "1"])]
+        v = v.sort_values("subvaluacion_pct", ascending=False)
+        v["_pub"] = v["publicador"].fillna("").replace("", "desconocido")
+        v = v.groupby("_pub", sort=False, group_keys=False).head(max_pub)
+
+        m1, m2, m3 = st.columns(3)
+        m1.metric("Oportunidades", f"{len(v):,}")
+        m2.metric("Subvaluación mediana", f"{v['subvaluacion_pct'].median():.0f}%" if len(v) else "—")
+        m3.metric("Descuento mediano", _money((v["valor_estimado"] - v["precio"]).median()) if len(v) else "—")
+
+        disp = v.rename(columns={"tipo_norm": "Tipo", "municipio": "Alcaldía", "colonia": "Colonia",
+                                 "precio": "Precio", "valor_estimado": "Valor estimado",
+                                 "subvaluacion_pct": "Subval %", "surface": "m²", "rooms": "Rec",
+                                 "url": "Link", "portal": "Portal", "publicador": "Publicador"})
+        base = ["Tipo", "Colonia", "Precio", "Valor estimado", "Subval %", "m²", "Rec", "Publicador", "Portal", "Link"]
+        if f_alc == "(todas)":
+            base.insert(1, "Alcaldía")
+        cols = [c for c in base if c in disp.columns]
+        st.dataframe(disp[cols], hide_index=True, width="stretch", height=520,
                      column_config={"Precio": st.column_config.NumberColumn(format="$ %d"),
                                     "Valor estimado": st.column_config.NumberColumn(format="$ %d"),
-                                    "Subvaluación %": st.column_config.NumberColumn(format="%.1f%%"),
+                                    "Subval %": st.column_config.NumberColumn(format="%.0f%%"),
                                     "Link": st.column_config.LinkColumn("Link", display_text="ver →")})
 
 # ══════════════════════════════ PLUSVALÍA ══════════════════════════════
