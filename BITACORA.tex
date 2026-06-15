@@ -68,6 +68,27 @@ decisiones / notas · pendientes / siguiente paso.
 %  ENTRADAS (la más reciente arriba)
 % =====================================================================
 
+\section*{2026-06-14 — AVM mejorado (kNN espacial): el piso honesto es $\sim$18\%}
+\addcontentsline{toc}{section}{2026-06-14 — AVM kNN: piso de ruido $\sim$18\%}
+
+\begin{itemize}
+  \item Se añadió el feature más fuerte de un AVM: \textbf{kNN de precio/m²}
+        (comparables cercanos, ponderados por distancia) + lat/lng directo. Hecho
+        \textbf{sin fuga}: el árbol kNN se ajusta SOLO con train; val/test usan
+        vecinos de train; las oportunidades usan kNN out-of-fold.
+  \item Resultado: MdAPE $\sim$\textbf{18\%} (apenas mejor que 19\%). El kNN es
+        informativo (corr 0.48 con el precio/m² real) pero no rompe el techo.
+  \item \textbf{Diagnóstico del techo}: el CV de precio/m² \textbf{dentro de una
+        misma colonia es $\pm$35\%} — ruido irreducible (estado, piso, amenidades
+        y, sobre todo, \textbf{precios de PEDIDA} mal capturados, no de venta).
+        Un MdAPE $\sim$18\% está en ese piso de ruido.
+  \item \textbf{Para bajar de 18\%} se necesitan \textbf{precios de venta reales}
+        (notariales/RPP, no abiertos) o atributos por unidad (condición, piso,
+        acabados). El modelo ya está bien; el límite es el dato.
+  \item Honestidad: no se reporta 11\% cuando el dato soporta $\sim$18\%, y se
+        explica por qué.
+\end{itemize}
+
 \section*{2026-06-14 — iCasas (6º portal) + bug de ids Navent: el AVM honesto es 19\%}
 \addcontentsline{toc}{section}{2026-06-14 — iCasas + corrección de fuga (AVM honesto 19\%)}
 

@@ -31,6 +31,7 @@ from sklearn.inspection import permutation_importance
 from sklearn.linear_model import Ridge
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.model_selection import KFold, cross_val_predict, train_test_split
+from sklearn.neighbors import BallTree
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
@@ -39,9 +40,10 @@ PROC = ROOT / "data" / "processed"
 SRC = PROC / "_unificado_dedup.csv"
 
 NUM = ["surface", "rooms", "bathrooms", "cat_valor_suelo", "antiguedad",
-       "cat_intensidad", "dist_transporte_km", "est_1km"]
+       "cat_intensidad", "dist_transporte_km", "est_1km", "lat", "lng", "knn_logppm"]
 CAT = ["municipio", "colonia", "tipo_norm"]
 SEED = 42
+K_VECINOS = 15  # vecinos para el feature de precio/m² espacial
 
 
 def norm_tipo(t) -> str:
@@ -132,16 +134,46 @@ def score(y_true, y_pred) -> dict:
     }
 
 
+def _knn_logppm(tr_rad, tr_y, q_rad, k, exclude_self=False):
+    """Media ponderada por distancia del log(precio/m²) de los k vecinos de TRAIN.
+    El árbol se ajusta SOLO con train → sin fuga al evaluar val/test."""
+    tree = BallTree(tr_rad, metric="haversine")
+    kk = min(k + (1 if exclude_self else 0), len(tr_y))
+    dist, idx = tree.query(q_rad, k=kk)
+    if exclude_self and dist.shape[1] > 1:
+        dist, idx = dist[:, 1:], idx[:, 1:]
+    w = 1.0 / (dist + 1e-9)
+    return (tr_y[idx] * w).sum(1) / w.sum(1)
+
+
 def main():
     df = load()
-    print(f"Inmuebles de entrenamiento (venta, saneados): {len(df):,}")
-    X = df[NUM + CAT]
-    y = np.log1p(df["precio"].to_numpy())
+    df["lat"] = pd.to_numeric(df["lat"], errors="coerce")
+    df["lng"] = pd.to_numeric(df["lng"], errors="coerce")
+    df = df[df["lat"].between(18.9, 20.1) & df["lng"].between(-99.6, -98.6)].reset_index(drop=True)
+    print(f"Inmuebles de entrenamiento (venta, saneados, con coords): {len(df):,}")
 
-    # split 60 / 20 / 20  (train / validation / test)
-    X_tr, X_tmp, y_tr, y_tmp = train_test_split(X, y, test_size=0.40, random_state=SEED)
-    X_val, X_te, y_val, y_te = train_test_split(X_tmp, y_tmp, test_size=0.50, random_state=SEED)
-    print(f"  train={len(X_tr):,}  val={len(X_val):,}  test={len(X_te):,}")
+    y = np.log1p(df["precio"].to_numpy())
+    log_ppm = np.log(df["precio"].to_numpy() / df["surface"].to_numpy())
+    rad = np.radians(df[["lat", "lng"]].to_numpy())
+
+    # split 60 / 20 / 20 por índice (para construir el kNN sin fuga)
+    ix = np.arange(len(df))
+    tr, tmp = train_test_split(ix, test_size=0.40, random_state=SEED)
+    val, te = train_test_split(tmp, test_size=0.50, random_state=SEED)
+    print(f"  train={len(tr):,}  val={len(val):,}  test={len(te):,}")
+
+    # feature kNN de precio/m² — vecinos SOLO de train (val/test no se ven a sí mismos)
+    knn = np.empty(len(df))
+    knn[tr] = _knn_logppm(rad[tr], log_ppm[tr], rad[tr], K_VECINOS, exclude_self=True)
+    knn[val] = _knn_logppm(rad[tr], log_ppm[tr], rad[val], K_VECINOS)
+    knn[te] = _knn_logppm(rad[tr], log_ppm[tr], rad[te], K_VECINOS)
+    df["knn_logppm"] = knn
+
+    X = df[NUM + CAT]
+    X_tr, y_tr = X.iloc[tr], y[tr]
+    X_val, y_val = X.iloc[val], y[val]
+    X_te, y_te = X.iloc[te], y[te]
 
     metrics, fitted = {}, {}
     for name, model in models().items():
@@ -164,9 +196,15 @@ def main():
     PROC.mkdir(parents=True, exist_ok=True)
     (PROC / "avm_metrics.json").write_text(json.dumps(metrics, indent=2, ensure_ascii=False))
 
-    # ── Valor estimado out-of-fold (cada inmueble valuado por un modelo que NO lo vio) ──
+    # ── Valor estimado out-of-fold (kNN y modelo, ambos OOF para no filtrar) ──
+    kf = KFold(5, shuffle=True, random_state=SEED)
+    knn_oof = np.empty(len(df))
+    for tri, tei in kf.split(ix):
+        knn_oof[tei] = _knn_logppm(rad[tri], log_ppm[tri], rad[tei], K_VECINOS)
+    df["knn_logppm"] = knn_oof
+    X_all = df[NUM + CAT]
     best_pipe = build_pipe(best, models()[best])
-    oof = np.expm1(cross_val_predict(best_pipe, X, y, cv=KFold(5, shuffle=True, random_state=SEED)))
+    oof = np.expm1(cross_val_predict(best_pipe, X_all, y, cv=kf))
     df["valor_estimado"] = np.clip(oof, 1e5, 3e7).round(0)
     df["subvaluacion_pct"] = ((df["valor_estimado"] - df["precio"]) / df["valor_estimado"] * 100).round(1)
 
