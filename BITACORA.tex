@@ -68,6 +68,30 @@ decisiones / notas · pendientes / siguiente paso.
 %  ENTRADAS (la más reciente arriba)
 % =====================================================================
 
+\section*{2026-06-14 — iCasas (6º portal) + bug de ids Navent: el AVM honesto es 19\%}
+\addcontentsline{toc}{section}{2026-06-14 — iCasas + corrección de fuga (AVM honesto 19\%)}
+
+\begin{itemize}
+  \item \textbf{iCasas} (\codigo{src/ingesta/icasas.py}): 6º portal, agregador con
+        microdata (coords reales). $\sim$30k listados → $\sim$8k inventario neto
+        tras dedup. Pero trae \textbf{colonia vacía} → se excluye del AVM y del
+        índice por colonia; aporta puntos al mapa, poco al modelo.
+  \item \textbf{Bug encontrado (importante)}: Inmuebles24 y Vivanuncios
+        \textbf{comparten ids} (ambos Navent) → 8{,}200 ids duplicados. El join de
+        features por \codigo{id} hacía \textbf{fan-out} y mezclaba propiedades →
+        inflaba train/test con fuga. Fix: clave única \codigo{uid} en el dedup y en
+        todos los joins de features; además se colapsan re-scrapes \codigo{(portal,id)}.
+  \item \textbf{Corrección de honestidad}: con el fan-out eliminado, el AVM honesto
+        es \textbf{MdAPE $\sim$19\%} (Gradient Boosting, R² 0.55). El \textbf{11\% /
+        5\% reportados antes eran FUGA}, no precisión real. Sin fuga, GB y RF
+        convergen a $\sim$19\% (confirma el diagnóstico).
+  \item Las features catastro/transporte correlacionan \textbf{débil} con el precio
+        (valor de suelo oficial 0.13 — está comprimido, no sigue mercado): ayudan
+        poco (20.7\% → 19\%), no el salto que parecía.
+  \item Es exactamente la tesis de CIMENTA: el sistema cazó su propio resultado
+        inflado.
+\end{itemize}
+
 \section*{2026-06-13 — AVM + transporte (Metro/Metrobús) y nota de honestidad}
 \addcontentsline{toc}{section}{2026-06-13 — AVM + transporte}
 

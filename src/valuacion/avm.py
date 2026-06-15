@@ -69,11 +69,12 @@ def load() -> pd.DataFrame:
     else:
         from src.ingesta.dedup import load_unified
         df = load_unified()
-    # enriquecer con features espaciales precomputadas (catastro + transporte)
+    # enriquecer con features espaciales precomputadas (join por uid único)
     for fn in ("catastro_features.csv", "transporte_features.csv"):
         fp = PROC / fn
-        if fp.exists() and "id" in df.columns:
-            df = df.merge(pd.read_csv(fp), on="id", how="left")
+        if fp.exists() and "uid" in df.columns:
+            feat = pd.read_csv(fp).drop_duplicates(subset="uid", keep="first")
+            df = df.merge(feat, on="uid", how="left")
     for col in ["cat_valor_suelo", "cat_anio", "cat_intensidad", "dist_transporte_km", "est_1km"]:
         df[col] = pd.to_numeric(df.get(col), errors="coerce")
     df["antiguedad"] = 2026 - df["cat_anio"]

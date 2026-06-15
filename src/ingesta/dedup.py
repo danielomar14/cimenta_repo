@@ -106,6 +106,9 @@ def run(args):
     if not args.incluir_renta:
         df = df[df["operacion"] == "venta"]
     df = df[df["precio"].between(1, args.precio_max)].reset_index(drop=True)
+    # colapsa re-scrapes exactos (mismo portal+id) al más barato → evita fan-out aguas abajo
+    df = df.sort_values("precio", na_position="last").drop_duplicates(
+        subset=["portal", "id"], keep="first").reset_index(drop=True)
     print(f"Universo: {'venta+renta' if args.incluir_renta else 'solo venta'}, "
           f"precio ≤ ${args.precio_max/1e6:.0f} MDP  ({n_total:,} → {len(df):,} anuncios)")
     n_raw = len(df)
@@ -142,7 +145,8 @@ def run(args):
     cols = ["portal", "id", "tipo", "operacion", "municipio", "colonia", "name",
             "precio", "precio_min", "precio_max", "ahorro", "surface", "rooms",
             "bathrooms", "lat", "lng", "url", "n_anuncios", "portales"]
-    kept = kept[cols].drop(columns=["sig"], errors="ignore")
+    kept = kept[cols].drop(columns=["sig"], errors="ignore").reset_index(drop=True)
+    kept.insert(0, "uid", range(len(kept)))  # clave única (los ids no lo son: Navent los comparte)
     kept.to_csv(OUT, index=False)
 
     n_unique = len(kept)

@@ -101,7 +101,7 @@ def main():
     est_1km = tree.query_radius(rad, r=1.0 / 6371, count_only=True)
 
     feat = pd.DataFrame({
-        "id": p["id"].to_numpy(),
+        "uid": p["uid"].to_numpy(),
         "dist_transporte_km": np.round(dist_km, 3),
         "est_1km": est_1km,
     })

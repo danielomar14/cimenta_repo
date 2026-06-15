@@ -67,7 +67,7 @@ def main():
         inten = np.where(st > 0, sc / st, np.nan)
 
     feat = pd.DataFrame({
-        "id": p["id"].to_numpy(),
+        "uid": p["uid"].to_numpy(),
         "cat_valor_suelo": np.nanmedian(valor[idx], axis=1).round(0),
         "cat_anio": np.nanmedian(anio[idx], axis=1).round(0),
         "cat_intensidad": np.round(np.nanmedian(inten[idx], axis=1), 2),
