@@ -1,0 +1,104 @@
+{
+  "_meta": {
+    "descripcion": "Diccionario de variables por propiedad (depto/casa) en CIMENTA · M1 Ingesta. La data es HETEROGÉNEA por portal: cada sitio expone campos distintos. Aquí se documenta qué tenemos hoy, con ejemplo y descripción, y qué falta extraer.",
+    "fecha": "2026-06-14",
+    "universo": "venta ≤ 20 MDP · CDMX + ZMVM · 6 portales",
+    "portales": ["casasyterrenos", "lamudi", "inmuebles24", "propiedades", "vivanuncios", "icasas"]
+  },
+
+  "1_variables_unificadas": {
+    "_nota": "Esquema común que usan el dedup, el mapa, el AVM y las oportunidades (data/processed/_unificado_dedup.csv).",
+    "uid":               {"desc": "Clave única de fila (los id de portal no son únicos: Navent los comparte)", "ejemplo": 14872, "tipo": "int"},
+    "id":                {"desc": "Id del anuncio en su portal (numérico o ruta-url)", "ejemplo": "149687061", "todos": true},
+    "portal":            {"desc": "Portal origen del registro conservado (el más barato del grupo)", "ejemplo": "inmuebles24"},
+    "portales":          {"desc": "Todos los portales donde aparece el mismo inmueble (dedup)", "ejemplo": "inmuebles24,propiedades"},
+    "n_anuncios":        {"desc": "Cuántos anuncios se colapsaron en este inmueble único", "ejemplo": 3},
+    "tipo":              {"desc": "Tipo de inmueble (texto del portal)", "ejemplo": "departamentos / Casa / Apartment"},
+    "operacion":         {"desc": "venta | renta (el universo actual es solo venta)", "ejemplo": "venta"},
+    "municipio":         {"desc": "Alcaldía/municipio", "ejemplo": "Benito Juárez"},
+    "colonia":           {"desc": "Colonia (vacía en Lamudi/iCasas → limita el join por colonia)", "ejemplo": "Del Valle Centro"},
+    "name":              {"desc": "Título del anuncio", "ejemplo": "Casa en condominio 3 recámaras, Del Valle"},
+    "precio":            {"desc": "Precio de venta en MXN (el más barato si hay duplicados)", "ejemplo": 9499999},
+    "precio_min":        {"desc": "Precio mínimo del grupo de duplicados", "ejemplo": 9499999},
+    "precio_max":        {"desc": "Precio máximo del grupo de duplicados", "ejemplo": 11200000},
+    "ahorro":            {"desc": "precio_max - precio_min (cuánto se evita pagando el más barato)", "ejemplo": 1700001},
+    "surface":           {"desc": "Superficie en m² (terreno o construcción según portal)", "ejemplo": 90},
+    "rooms":             {"desc": "Recámaras", "ejemplo": 2},
+    "bathrooms":         {"desc": "Baños", "ejemplo": 2},
+    "lat":               {"desc": "Latitud (nativa en CyT/Lamudi/Propiedades/iCasas; geocodificada por colonia en Inmuebles24/Vivanuncios)", "ejemplo": 19.3807231},
+    "lng":               {"desc": "Longitud", "ejemplo": -99.1625246},
+    "url":               {"desc": "URL del anuncio", "ejemplo": "https://www.inmuebles24.com/propiedades/..."}
+  },
+
+  "2_derivadas_modelo": {
+    "_nota": "Producidas por el AVM (M2) y la subvaluación (M5).",
+    "valor_estimado":    {"desc": "Valor estimado por el AVM (out-of-fold, MdAPE ~18%)", "ejemplo": 3510856},
+    "subvaluacion_pct":  {"desc": "(valor_estimado - precio)/valor_estimado · % por debajo del valor", "ejemplo": 29.1},
+    "cat_valor_suelo":   {"desc": "Valor oficial del suelo $/m² del predio catastral más cercano", "ejemplo": 4428},
+    "antiguedad":        {"desc": "2026 - año de construcción del catastro cercano", "ejemplo": 39},
+    "dist_transporte_km":{"desc": "Distancia a la estación de Metro/Metrobús más cercana", "ejemplo": 0.78},
+    "knn_logppm":        {"desc": "log(precio/m²) de comparables cercanos (feature espacial del AVM)", "ejemplo": 11.0}
+  },
+
+  "3_campos_ricos_por_portal": {
+    "_nota": "En la data CRUDA (data/raw/*) hay más de lo que pasa al CSV. Resumen de lo extra por portal.",
+    "casasyterrenos": {
+      "n_campos": 33,
+      "broker":        {"desc": "PUBLICADOR: nombre, email y teléfono", "ejemplo": {"name": "Pulppo", "email": "leads@pulppo.com"}},
+      "amenities":     {"desc": "IDs de amenidades", "ejemplo": [72, 77, 71, 56]},
+      "lastUpdate":    {"desc": "Última actualización (ISO)", "ejemplo": "2026-05-27T14:35:20"},
+      "tour_virtual":  {"desc": "URL de recorrido virtual", "ejemplo": "https://nivara.mx/..."},
+      "youtube_url":   {"desc": "Videos", "ejemplo": ["https://youtube.com/..."]},
+      "outstanding":   {"desc": "Anuncio destacado (pago)", "ejemplo": false},
+      "isTransfer":    {"desc": "Es traspaso", "ejemplo": false},
+      "construction":  {"desc": "m² de construcción (vs terreno)", "ejemplo": 303}
+    },
+    "propiedades": {
+      "n_campos": 78,
+      "_nota": "EL MÁS RICO. ~40 amenidades booleanas + flags clave.",
+      "isAuction":     {"desc": "★ BANDERA DE REMATE / SUBASTA BANCARIA", "ejemplo": false},
+      "published":     {"desc": "★ Fecha exacta de publicación", "ejemplo": "2026-05-21 22:24:35"},
+      "days_ago":      {"desc": "★ Antigüedad del anuncio en la plataforma", "ejemplo": "22 días en Propiedades.com"},
+      "is_new":        {"desc": "Anuncio nuevo", "ejemplo": false},
+      "is_duplicated": {"desc": "Marcado como duplicado por el portal", "ejemplo": 0},
+      "isExclusive":   {"desc": "Exclusiva del agente", "ejemplo": false},
+      "off_market":    {"desc": "Fuera de mercado", "ejemplo": false},
+      "verifiedUserWhatsapp": {"desc": "Anunciante con WhatsApp verificado (señal de calidad)", "ejemplo": true},
+      "highlighted":   {"desc": "Anuncio pagado/destacado", "ejemplo": 1},
+      "product_ranking_id": {"desc": "Ranking del producto (posición pagada)", "ejemplo": 1},
+      "total_photos":  {"desc": "Número de fotos", "ejemplo": 23},
+      "zipcode":       {"desc": "Código postal", "ejemplo": "02970"},
+      "amenidades_40": {"desc": "gym, pool, elevator, private_security, cistern, terrace, parking_num, air_conditioning, cc_tv, ...", "ejemplo": "0/1 cada una"}
+    },
+    "inmuebles24": {
+      "n_campos": 15,
+      "card_type":     {"desc": "PROPERTY (clasificado) | DEVELOPMENT (preventa)", "ejemplo": "PROPERTY"},
+      "precio_desde":  {"desc": "El precio es 'desde' (rango de desarrollo)", "ejemplo": true},
+      "colonia":       {"desc": "Colonia + alcaldía", "ejemplo": "Del Valle Sur"},
+      "parking":       {"desc": "Estacionamientos", "ejemplo": 2},
+      "_FALTA_publicador": {"desc": "★ En la tarjeta HTML existe POSTING_CARD_PUBLISHER (nombre de la empresa, 'X meses en Inmuebles24', calificación) pero NO se está extrayendo", "estado": "disponible_no_extraido"}
+    },
+    "lamudi": {
+      "n_campos": 13,
+      "description":   {"desc": "Texto largo del anuncio (útil para detectar 'remate')", "ejemplo": "Cómoda casa en condominio..."},
+      "image":         {"desc": "Foto principal", "ejemplo": "https://img.lamudi.com.mx/..."},
+      "_FALTA": {"desc": "Sin publicador, sin fecha, sin amenidades en el listado", "estado": "no_disponible_en_listado"}
+    },
+    "vivanuncios": {
+      "n_campos": 14,
+      "_nota": "Mismo parser Navent que Inmuebles24; sin publicador extraído"
+    },
+    "icasas": {
+      "n_campos": 12,
+      "_nota": "AGREGADOR. Mínimo: id(url), lat/lng, name, precio, rooms, baths, surface. SIN colonia, SIN fecha, SIN publicador, SIN descripción."
+    }
+  },
+
+  "4_para_tu_problema_remates": {
+    "_nota": "Para filtrar 'misma empresa / <3 meses / sin calificar / remates' necesitamos estos campos. Estado de cada uno:",
+    "publicador_empresa": {"necesidad": "Detectar que casi todo es del mismo anunciante", "estado": "PARCIAL: CyT.broker ✓ | Inmuebles24 disponible en HTML (no extraído) ✗ | Propiedades sin nombre ✗ | otros ✗"},
+    "antiguedad_en_plataforma": {"necesidad": "'<3 meses en la plataforma'", "estado": "PARCIAL: Propiedades.published/days_ago ✓ | Inmuebles24 'X meses en...' en HTML (no extraído) ✗ | CyT.lastUpdate (≈) ✓"},
+    "calificacion_anunciante": {"necesidad": "'no está calificada'", "estado": "PARCIAL: Inmuebles24 muestra rating en la tarjeta (no extraído) ✗ | Propiedades.verifiedUserWhatsapp (proxy) ✓ | otros ✗"},
+    "bandera_remate": {"necesidad": "'son remates bancarios'", "estado": "Propiedades.isAuction ✓ | resto: detectable por palabra 'remate/adjudicado/recuperado' en name/description ✓(regex)"}
+  }
+}
