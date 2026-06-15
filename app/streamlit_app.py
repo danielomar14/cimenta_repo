@@ -233,7 +233,9 @@ with tab_opp:
     _, _, _, opp = load_avm()
     st.markdown("### Oportunidades · Benito Juárez")
     st.caption("Casas y departamentos en **Benito Juárez** por **menos de $3 MDP**, "
-               "cuyo precio está **por debajo del valor estimado** por el AVM (subvaluadas). 20 al azar.")
+               "**por debajo del valor estimado** por el AVM (subvaluación 15–45%). "
+               "Se **excluyen remates/subastas** y se limita a **máx 3 por publicador** "
+               "(evita inundación de una sola empresa).")
     if opp is None or not len(opp):
         st.info("Aún no hay oportunidades calculadas. Corre:  `python -m src.valuacion.avm`")
     else:
@@ -245,8 +247,10 @@ with tab_opp:
         c.metric("Descuento mediano vs. valor", _money(b_savings))
         disp = o.rename(columns={"tipo_norm": "Tipo", "colonia": "Colonia", "precio": "Precio",
                                  "valor_estimado": "Valor estimado", "subvaluacion_pct": "Subvaluación %",
-                                 "surface": "m²", "rooms": "Rec", "bathrooms": "Baños", "url": "Link", "portal": "Portal"})
-        cols = [c for c in ["Tipo", "Colonia", "Precio", "Valor estimado", "Subvaluación %", "m²", "Rec", "Baños", "Portal", "Link"] if c in disp.columns]
+                                 "surface": "m²", "rooms": "Rec", "bathrooms": "Baños", "url": "Link",
+                                 "portal": "Portal", "publicador": "Publicador"})
+        cols = [c for c in ["Tipo", "Colonia", "Precio", "Valor estimado", "Subvaluación %", "m²", "Rec",
+                            "Publicador", "Portal", "Link"] if c in disp.columns]
         st.dataframe(disp[cols], hide_index=True, width="stretch", height=560,
                      column_config={"Precio": st.column_config.NumberColumn(format="$ %d"),
                                     "Valor estimado": st.column_config.NumberColumn(format="$ %d"),

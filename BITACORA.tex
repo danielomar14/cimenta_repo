@@ -68,6 +68,29 @@ decisiones / notas · pendientes / siguiente paso.
 %  ENTRADAS (la más reciente arriba)
 % =====================================================================
 
+\section*{2026-06-14 — Señales de confianza: adiós a las oportunidades-remate}
+\addcontentsline{toc}{section}{2026-06-14 — Señales (publicador/remate) en oportunidades}
+
+\begin{itemize}
+  \item \textbf{Problema}: las oportunidades estaban dominadas por un solo
+        publicador de remates bancarios, nuevo y sin calificar.
+  \item Diagnóstico con el diccionario de variables
+        (\codigo{docs/diccionario\_variables.json}): los campos para filtrarlo casi
+        todos YA se descargaban pero no se extraían.
+  \item \codigo{inmuebles24.py}: ahora parsea el \textbf{JSON-LD} (\codigo{description}
+        + \codigo{datePosted}) y el \textbf{logo del publicador} → identifica la
+        empresa (pulppo, iad-mexico, …). \codigo{--force} re-captura ids existentes;
+        se re-scrapeó Inmuebles24 BJ.
+  \item \codigo{src/ingesta/senales.py}: por anuncio → \codigo{publicador},
+        \codigo{es\_remate} (regex en descripción), \codigo{es\_subasta}
+        (Propiedades.isAuction), \codigo{fecha\_pub}, \codigo{verificado}.
+  \item \codigo{avm.py} oportunidades: \textbf{excluye remates/subastas} y
+        \textbf{limita a 3 por publicador} (evita la inundación de una empresa).
+  \item \textbf{Resultado}: de "todas de una empresa de remates" a \textbf{11
+        oportunidades, 6 publicadores distintos, 0 remates}. La pestaña muestra el
+        publicador.
+\end{itemize}
+
 \section*{2026-06-14 — AVM mejorado (kNN espacial): el piso honesto es $\sim$18\%}
 \addcontentsline{toc}{section}{2026-06-14 — AVM kNN: piso de ruido $\sim$18\%}
 
