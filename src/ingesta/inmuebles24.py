@@ -110,15 +110,37 @@ def _txt(el):
     return el.get_text(" ", strip=True) if el else None
 
 
+def _ld_por_id(html: str) -> dict:
+    """JSON-LD (mainEntity de RealEstateListing) → {id: {descripcion, fecha_posted}}."""
+    out = {}
+    for m in re.finditer(r'<script[^>]*application/ld\+json[^>]*>(.*?)</script>', html, re.DOTALL):
+        try:
+            d = json.loads(m.group(1))
+        except (json.JSONDecodeError, TypeError):
+            continue
+        me = d.get("mainEntity") if isinstance(d, dict) else None
+        if not isinstance(me, list):
+            continue
+        for it in me:
+            mm = re.search(r"(\d{6,})", it.get("url") or "")
+            if mm:
+                out[mm.group(1)] = {"descripcion": it.get("description"), "fecha_posted": it.get("datePosted")}
+    return out
+
+
 def parse_cards(html: str) -> list[dict]:
     soup = BeautifulSoup(html, "html.parser")
     cards = soup.select('[data-qa="posting PROPERTY"], [data-qa="posting DEVELOPMENT"]')
+    ld = _ld_por_id(html)
     out = []
     for c in cards:
         pid = c.get("data-id")
         if not pid:
             continue
         card_type = (c.get("data-qa") or "").replace("posting", "").strip() or "PROPERTY"
+        pub = c.select_one('[data-qa="POSTING_CARD_PUBLISHER"]')
+        publicador_logo = pub.get("src") if pub and pub.get("src") else None
+        extra = ld.get(str(pid), {})
         price_raw = _txt(c.select_one('[data-qa="POSTING_CARD_PRICE"]'))
         precio, cur, desde = parse_price(price_raw)
         addr = _txt(c.select_one('[class*="location-address"]'))
@@ -132,6 +154,8 @@ def parse_cards(html: str) -> list[dict]:
             "precio": precio, "currency": cur, "precio_desde": desde,
             "address": addr, "colonia": colonia, "municipio": municipio,
             "url": href,
+            "descripcion": extra.get("descripcion"), "fecha_posted": extra.get("fecha_posted"),
+            "publicador_logo": publicador_logo,
             **feats,
         })
     return out
@@ -193,7 +217,7 @@ def run(args):
     csv_path = PROC_DIR / "inmuebles24.csv"
 
     ck = load_ck(); done = set(tuple(x) for x in ck["done"]); seen: set = set()
-    if raw_path.exists():
+    if raw_path.exists() and not args.force:   # con --force se re-capturan ids existentes
         with raw_path.open(encoding="utf-8") as f:
             for line in f:
                 try: seen.add(json.loads(line)["id"])

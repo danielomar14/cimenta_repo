@@ -226,17 +226,31 @@ def main():
     # ── M5 · Oportunidades: 20 casas/deptos BJ < 3 MDP subvaluadas ──
     # Banda creíble de subvaluación: 15–45%. Por encima de 45% en zona cara suele
     # ser ERROR DE DATO (precio mal capturado, no oportunidad real) — se excluye.
+    # señales de confianza por anuncio (publicador / remate / antigüedad)
+    sen_path = PROC / "senales_anuncio.csv"
+    if sen_path.exists():
+        sen = pd.read_csv(sen_path, dtype={"id": str}).drop_duplicates(["portal", "id"])
+        df["id"] = df["id"].astype(str)
+        df = df.merge(sen, on=["portal", "id"], how="left")
+    for col in ["es_remate", "publicador", "fecha_pub"]:
+        if col not in df.columns:
+            df[col] = ""
+    es_remate = df["es_remate"].astype(str).str.lower().isin(["true", "1"])
+
     bj = df[
         df["municipio"].str.contains("benito", case=False, na=False)
         & df["tipo_norm"].isin(["casa", "departamento"])
         & (df["precio"] < 3_000_000)
         & (df["subvaluacion_pct"].between(15, 45))
+        & (~es_remate)                                  # excluye remates / subastas
     ].copy()
     bj = bj.sort_values("subvaluacion_pct", ascending=False)
-    opp = bj.sample(min(20, len(bj)), random_state=SEED) if len(bj) else bj
-    opp = opp.sort_values("subvaluacion_pct", ascending=False)
+    # diversificar: máx 3 oportunidades por publicador (evita inundación de una empresa)
+    bj["_pub"] = bj["publicador"].fillna("").replace("", "desconocido")
+    opp = bj.groupby("_pub", sort=False, group_keys=False).head(3).head(20)
     opp_cols = ["portal", "tipo_norm", "colonia", "precio", "valor_estimado",
-                "subvaluacion_pct", "surface", "rooms", "bathrooms", "url"]
+                "subvaluacion_pct", "publicador", "es_remate", "fecha_pub",
+                "surface", "rooms", "bathrooms", "url"]
     opp[[c for c in opp_cols if c in opp.columns]].to_csv(PROC / "oportunidades_bj.csv", index=False)
 
     print(f"\nOportunidades BJ (<3 MDP, subvaluadas ≥15%): {len(bj)} candidatas → {len(opp)} seleccionadas")
