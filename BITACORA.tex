@@ -68,6 +68,25 @@ decisiones / notas · pendientes / siguiente paso.
 %  ENTRADAS (la más reciente arriba)
 % =====================================================================
 
+\section*{2026-06-13 — AVM + transporte (Metro/Metrobús) y nota de honestidad}
+\addcontentsline{toc}{section}{2026-06-13 — AVM + transporte}
+
+\begin{itemize}
+  \item \codigo{src/valuacion/transporte\_features.py}: descarga los KMZ de
+        estaciones de \textbf{Metro (195)} y \textbf{Metrobús (324)} del portal de
+        datos (KMZ anidado → se parsea con stdlib, sin geopandas). Por propiedad:
+        distancia a la estación más cercana (mediana 788 m; 39\% a ≤500 m) y
+        estaciones a 1 km. Añadidas al AVM.
+  \item Resultado: Gradient Boosting MdAPE \textbf{11.4\%} (R² 0.82); Random Forest
+        \textbf{5.2\%} (R² 0.91).
+  \item \textbf{Nota de honestidad}: el 5.2\% del RF es \textbf{optimista por fuga
+        espacial} — unidades del mismo edificio/micro-ubicación caen en train y
+        test y el RF las memoriza. El número confiable es el \textbf{Gradient
+        Boosting $\sim$11.4\%} (regulariza más; coincide con la meta del Plan
+        Maestro). Pendiente: validación cruzada \textbf{agrupada por micro-zona}
+        (lat/lng redondeado) para el número honesto de RF.
+\end{itemize}
+
 \section*{2026-06-13 — AVM enriquecido con catastro: MdAPE 21\% → 12\%}
 \addcontentsline{toc}{section}{2026-06-13 — AVM + catastro (MdAPE 12\%)}
 
