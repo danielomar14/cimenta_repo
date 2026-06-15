@@ -193,6 +193,34 @@ ingesta:
       - { slug: "casas-en-renta",            cat: 1299, tipo: casas,         operacion: renta }
       - { slug: "renta-locales-comerciales", cat: 1276, tipo: locales,       operacion: renta }
 
+  # ---- iCasas (Nivel A) ----------------------------------------------
+  #  HTML con microdata schema.org (Residence + GeoCoordinates → coords reales).
+  #  URL: /venta/habitacionales-{tipo}-distrito-federal-{alcaldia}-2_{tc}_1_0_{code}_0[/p_N]
+  #  Paginación: sufijo /p_N. Precio en texto "N MX$". Solo venta (universo).
+  icasas:
+    base_url: "https://www.icasas.mx"
+    max_pages: 40
+    tipos:                    # nombre: código (tc)
+      departamentos: 3
+      casas: 5
+    alcaldias:                # slug: código (alfabético 264-279)
+      alvaro-obregon: 264
+      azcapotzalco: 265
+      benito-juarez: 266
+      coyoacan: 267
+      cuajimalpa-morelos: 268
+      cuauhtemoc: 269
+      gustavo-a-madero: 270
+      iztacalco: 271
+      iztapalapa: 272
+      magdalena-contreras: 273
+      miguel-hidalgo: 274
+      milpa-alta: 275
+      tlahuac: 276
+      tlalpan: 277
+      venustiano-carranza: 278
+      xochimilco: 279
+
 
 # =====================================================================
 #  Google Drive — subida de fotos y respaldos
